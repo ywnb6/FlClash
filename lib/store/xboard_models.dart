@@ -1,3 +1,5 @@
+import 'package:fl_clash/store/xboard_parse.dart';
+
 class XboardPlan {
   const XboardPlan({
     required this.id,
@@ -31,18 +33,14 @@ class XboardPlan {
 
   factory XboardPlan.fromJson(Map<String, Object?> json) {
     int? readPrice(String key) {
-      final value = json[key];
-      if (value is num) {
-        final price = value.toInt();
-        return price > 0 ? price : null;
-      }
-      return null;
+      final price = asInt(json[key]);
+      return price != null && price > 0 ? price : null;
     }
 
     return XboardPlan(
-      id: (json['id'] as num?)?.toInt() ?? 0,
-      name: json['name'] as String? ?? '',
-      content: json['content'] as String? ?? '',
+      id: asIntOr(json['id'], 0),
+      name: asString(json['name']),
+      content: asString(json['content']),
       monthPrice: readPrice('month_price'),
       quarterPrice: readPrice('quarter_price'),
       halfYearPrice: readPrice('half_year_price'),
@@ -50,9 +48,9 @@ class XboardPlan {
       twoYearPrice: readPrice('two_year_price'),
       threeYearPrice: readPrice('three_year_price'),
       onetimePrice: readPrice('onetime_price'),
-      transferEnable: (json['transfer_enable'] as num?)?.toInt(),
-      sell: json['sell'] as bool? ?? true,
-      sort: (json['sort'] as num?)?.toInt() ?? 0,
+      transferEnable: asInt(json['transfer_enable']),
+      sell: asBool(json['sell']),
+      sort: asIntOr(json['sort'], 0),
     );
   }
 
@@ -90,10 +88,8 @@ class XboardPlan {
   ];
 
   int? get minPrice {
-    final prices = periods.map((period) => period.price).toList();
-    if (prices.isEmpty) return null;
-    prices.sort();
-    return prices.first;
+    final prices = [for (final period in periods) period.price]..sort();
+    return prices.isEmpty ? null : prices.first;
   }
 }
 
@@ -109,14 +105,13 @@ class XboardPlanPeriod {
   final int price;
 
   String label(String locale) {
-    if (months == 0) {
-      return locale.startsWith('zh') ? '一次性' : 'One time';
-    }
-    if (months == 1) return locale.startsWith('zh') ? '月付' : 'Monthly';
-    if (months == 3) return locale.startsWith('zh') ? '季付' : 'Quarterly';
-    if (months == 6) return locale.startsWith('zh') ? '半年' : '6 months';
-    if (months == 12) return locale.startsWith('zh') ? '年付' : 'Yearly';
-    return locale.startsWith('zh') ? '$months 个月' : '$months months';
+    final zh = locale.startsWith('zh');
+    if (months == 0) return zh ? '一次性' : 'One time';
+    if (months == 1) return zh ? '月付' : 'Monthly';
+    if (months == 3) return zh ? '季付' : 'Quarterly';
+    if (months == 6) return zh ? '半年' : '6 months';
+    if (months == 12) return zh ? '年付' : 'Yearly';
+    return zh ? '$months 个月' : '$months months';
   }
 }
 
@@ -148,23 +143,25 @@ class XboardUserInfo {
   final int banned;
 
   factory XboardUserInfo.fromJson(Map<String, Object?> json) {
-    final subscribe = json['subscribe_url'];
     return XboardUserInfo(
-      email: json['email'] as String? ?? '',
-      balance: (json['balance'] as num?)?.toInt() ?? 0,
-      commissionBalance: (json['commission_balance'] as num?)?.toInt() ?? 0,
-      transferEnable: (json['transfer_enable'] as num?)?.toInt() ?? 0,
-      upload: (json['u'] as num?)?.toInt() ?? 0,
-      download: (json['d'] as num?)?.toInt() ?? 0,
-      expiredAt: (json['expired_at'] as num?)?.toInt(),
-      subscribeUrl: subscribe is String ? subscribe : '',
-      planName: json['plan_name'] as String?,
-      discount: (json['discount'] as num?)?.toInt(),
-      banned: (json['banned'] as num?)?.toInt() ?? 0,
+      email: asString(json['email']),
+      balance: asIntOr(json['balance'], 0),
+      commissionBalance: asIntOr(json['commission_balance'], 0),
+      transferEnable: asIntOr(json['transfer_enable'], 0),
+      upload: asIntOr(json['u'], 0),
+      download: asIntOr(json['d'], 0),
+      expiredAt: asInt(json['expired_at']),
+      subscribeUrl: asString(json['subscribe_url']),
+      planName: asStringOrNull(json['plan_name']),
+      discount: asInt(json['discount']),
+      banned: asIntOr(json['banned'], 0),
     );
   }
 
-  int get used => upload + download;
+  int get used {
+    final total = upload + download;
+    return total > 0 ? total : 0;
+  }
 
   int get remain {
     final left = transferEnable - used;
@@ -173,9 +170,11 @@ class XboardUserInfo {
 
   bool get hasSubscription => subscribeUrl.isNotEmpty;
 
-  DateTime? get expiredAtDate => expiredAt == null
-      ? null
-      : DateTime.fromMillisecondsSinceEpoch(expiredAt! * 1000);
+  DateTime? get expiredAtDate {
+    final value = expiredAt;
+    if (value == null || value <= 0) return null;
+    return DateTime.fromMillisecondsSinceEpoch(value * 1000);
+  }
 }
 
 class XboardOrder {
@@ -185,17 +184,21 @@ class XboardOrder {
   final Map<String, String>? methods;
 
   factory XboardOrder.fromJson(Map<String, Object?> json) {
-    final rawMethods = json['payment_method'];
+    final raw = json['payment_method'];
     final methods = <String, String>{};
-    if (rawMethods is Map) {
-      rawMethods.forEach((key, value) {
-        if (value is String) methods['$key'] = value;
+    if (raw is Map) {
+      raw.forEach((key, value) {
+        final text = asStringOrNull(value);
+        if (text != null) {
+          methods[asString(key, '$key')] = text;
+        }
       });
-    } else if (rawMethods is String && rawMethods.isNotEmpty) {
-      methods[rawMethods] = rawMethods;
+    } else {
+      final text = asStringOrNull(raw);
+      if (text != null) methods[text] = text;
     }
     return XboardOrder(
-      tradeNo: json['trade_no'] as String? ?? '',
+      tradeNo: asString(json['trade_no']),
       methods: methods.isEmpty ? null : methods,
     );
   }

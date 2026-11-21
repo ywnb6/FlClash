@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/store/xboard_models.dart';
+import 'package:fl_clash/store/xboard_parse.dart';
 
 class XboardException implements Exception {
   const XboardException(this.message, {this.statusCode});
@@ -151,12 +152,17 @@ class XboardClient {
       data: {'email': email.trim(), 'password': password},
       auth: false,
     );
+    final token = _readAuthData(data);
+    _token = token;
+    return token;
+  }
+
+  String _readAuthData(Object? data) {
     final authData = data is Map ? data['auth_data'] : null;
-    final token = authData is String ? authData : null;
+    final token = asStringOrNull(authData);
     if (token == null || token.isEmpty) {
       throw const XboardException('No auth data returned');
     }
-    _token = token;
     return token;
   }
 
@@ -179,11 +185,7 @@ class XboardClient {
       },
       auth: false,
     );
-    final authData = data is Map ? data['auth_data'] : null;
-    final token = authData is String ? authData : null;
-    if (token == null || token.isEmpty) {
-      throw const XboardException('No auth data returned');
-    }
+    final token = _readAuthData(data);
     _token = token;
     return token;
   }
@@ -206,7 +208,7 @@ class XboardClient {
   Future<int?> fetchBalance() async {
     try {
       final data = await _request('/user/stat/getTrafficLog');
-      return data is Map ? (data['balance'] as num?)?.toInt() : null;
+      return data is Map ? asInt(data['balance']) : null;
     } catch (_) {
       return null;
     }
@@ -254,16 +256,16 @@ class XboardClient {
     );
     if (data is Map) {
       final value = data['data'] ?? data['url'] ?? data['pay_url'];
-      if (value is String && value.isNotEmpty) return value;
+      final url = asStringOrNull(value);
+      if (url != null) return url;
     }
-    if (data is String && data.isNotEmpty) return data;
-    return '';
+    return asStringOrNull(data) ?? '';
   }
 
   Future<int?> orderStatus({required String tradeNo}) async {
     try {
       final data = await _request('/user/order/detail', data: {'trade_no': tradeNo});
-      if (data is Map) return (data['status'] as num?)?.toInt();
+      if (data is Map) return asInt(data['status']);
     } catch (_) {}
     return null;
   }
