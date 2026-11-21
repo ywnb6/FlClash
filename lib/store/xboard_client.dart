@@ -106,9 +106,10 @@ class XboardClient {
 
   String _describeNetworkError(DioException error) {
     switch (error.type) {
-      case DioExceptionType.connectionTimeout:
-      case DioExceptionType.sendTimeout:
-      case DioExceptionType.receiveTimeout:
+      case DioExceptionType.connectionTimeout ||
+          DioExceptionType.sendTimeout ||
+          DioExceptionType.receiveTimeout ||
+          DioExceptionType.transformTimeout:
         return 'Connection timeout';
       case DioExceptionType.badCertificate:
         return 'Bad certificate';

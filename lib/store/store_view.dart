@@ -1,5 +1,6 @@
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/features/features.dart';
 import 'package:fl_clash/providers/action.dart';
 import 'package:fl_clash/store/xboard_client.dart';
 import 'package:fl_clash/store/xboard_models.dart';
@@ -120,7 +121,7 @@ class _StoreViewState extends ConsumerState<StoreView> {
     }
     final planName = session.userInfo?.planName?.trim();
     final label = planName == null || planName.isEmpty ? 'Xboard' : planName;
-    await ref.read(profilesActionProvider).addProfileFromLink(url, label: label);
+    await ref.read(profilesActionProvider.notifier).addProfileFromLink(url, label: label);
     if (!mounted) return;
     dialogs.showBanner(
       currentAppLocalizations.storeImported,
