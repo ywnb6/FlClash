@@ -611,9 +611,8 @@ class _PlanSheet extends StatefulWidget {
 class _PlanSheetState extends State<_PlanSheet> {
   final _coupon = TextEditingController();
   XboardPlanPeriod? _period;
-  Map<String, String>? _methods;
-  String? _selectedMethod;
-  String? _tradeNo;
+  List<XboardPaymentMethod> _methods = const [];
+  int? _paymentId;
   bool _busy = false;
   String? _error;
 
@@ -622,6 +621,22 @@ class _PlanSheetState extends State<_PlanSheet> {
     super.initState();
     final periods = widget.plan.periods;
     _period = periods.isEmpty ? null : periods.first;
+    _loadMethods();
+  }
+
+  Future<void> _loadMethods() async {
+    try {
+      await widget.session.loadPaymentMethods();
+      if (!mounted) return;
+      final methods = widget.session.paymentMethods;
+      setState(() {
+        _methods = methods;
+        _paymentId = methods.isEmpty ? null : methods.first.id;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _methods = const []);
+    }
   }
 
   @override
@@ -630,7 +645,7 @@ class _PlanSheetState extends State<_PlanSheet> {
     super.dispose();
   }
 
-  Future<void> _create() async {
+  Future<void> _buy() async {
     final period = _period;
     if (period == null) return;
     if (!widget.session.isSignedIn) {
@@ -646,25 +661,30 @@ class _PlanSheetState extends State<_PlanSheet> {
         plan: widget.plan,
         period: period,
         coupon: _coupon.text,
+        paymentId: _paymentId,
       );
-      final methods = order.methods;
-      if (methods == null || methods.isEmpty) {
-        await widget.session.refreshUserInfo();
+      final methodName = _selectedMethodKey(order.methods);
+      if (order.tradeNo.isNotEmpty && methodName != null) {
+        final url = await widget.session.pay(
+          tradeNo: order.tradeNo,
+          method: methodName,
+        );
+        if (!mounted) return;
+        setState(() => _busy = false);
+        if (url.isNotEmpty) {
+          await dialogs.openUrl(url);
+        }
         if (!mounted) return;
         Navigator.of(context).pop(true);
-        dialogs.showBanner(
-          currentAppLocalizations.storeOrderCreated,
-          level: BannerLevel.success,
-        );
         return;
       }
+      await widget.session.refreshUserInfo();
       if (!mounted) return;
-      setState(() {
-        _tradeNo = order.tradeNo;
-        _methods = methods;
-        _selectedMethod = methods.keys.first;
-        _busy = false;
-      });
+      Navigator.of(context).pop(true);
+      dialogs.showBanner(
+        currentAppLocalizations.storeOrderCreated,
+        level: BannerLevel.success,
+      );
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -674,30 +694,16 @@ class _PlanSheetState extends State<_PlanSheet> {
     }
   }
 
-  Future<void> _pay() async {
-    final tradeNo = _tradeNo;
-    final method = _selectedMethod;
-    if (tradeNo == null || method == null) return;
-    setState(() {
-      _busy = true;
-      _error = null;
-    });
-    try {
-      final url = await widget.session.pay(tradeNo: tradeNo, method: method);
-      if (!mounted) return;
-      setState(() => _busy = false);
-      if (url.isNotEmpty) {
-        await dialogs.openUrl(url);
+  String? _selectedMethodKey(Map<String, String>? methods) {
+    if (methods == null || methods.isEmpty) return null;
+    final chosen = _methods.where((method) => method.id == _paymentId);
+    if (chosen.isNotEmpty) {
+      final name = chosen.first.name;
+      for (final entry in methods.entries) {
+        if (entry.value == name) return entry.key;
       }
-      if (!mounted) return;
-      Navigator.of(context).pop(true);
-    } catch (error) {
-      if (!mounted) return;
-      setState(() {
-        _busy = false;
-        _error = _humanError(error);
-      });
     }
+    return methods.keys.first;
   }
 
   @override
@@ -734,34 +740,31 @@ class _PlanSheetState extends State<_PlanSheet> {
                   label: period.label(locale),
                   trailing: formatPrice(period.price),
                   selected: _period?.period == period.period,
-                  onTap: _tradeNo != null
-                      ? null
-                      : () => setState(() => _period = period),
+                  onTap: () => setState(() => _period = period),
                 ),
             ],
           ),
-          if (_tradeNo == null)
-            Padding(
-              padding: const EdgeInsets.only(top: 12),
-              child: FormRowTextField(
-                controller: _coupon,
-                hintText: appLocalizations.storeCoupon,
-                autocorrect: false,
-                enableSuggestions: false,
-              ),
-            ),
-          if (_methods != null)
+          if (_methods.isNotEmpty)
             generateSection(
               title: appLocalizations.storePayMethod,
               items: [
-                for (final entry in _methods!.entries)
+                for (final method in _methods)
                   _ChoiceRow(
-                    label: entry.value,
-                    selected: _selectedMethod == entry.key,
-                    onTap: () => setState(() => _selectedMethod = entry.key),
+                    label: method.name,
+                    selected: _paymentId == method.id,
+                    onTap: () => setState(() => _paymentId = method.id),
                   ),
               ],
             ),
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: FormRowTextField(
+              controller: _coupon,
+              hintText: appLocalizations.storeCoupon,
+              autocorrect: false,
+              enableSuggestions: false,
+            ),
+          ),
           if (_error != null)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
@@ -775,14 +778,12 @@ class _PlanSheetState extends State<_PlanSheet> {
           const SizedBox(height: 12),
           if (_period != null)
             FilledButton(
-              onPressed: _busy ? null : (_tradeNo == null ? _create : _pay),
+              onPressed: _busy ? null : _buy,
               child: _busy
                   ? const ActivityIndicator(size: 16)
                   : Text(
-                      _tradeNo == null
-                          ? '${appLocalizations.storeBuy} · '
-                                '${formatPrice(_period!.price)}'
-                          : appLocalizations.storePay,
+                      '${appLocalizations.storeBuy} · '
+                      '${formatPrice(_period!.price)}',
                     ),
             ),
         ],

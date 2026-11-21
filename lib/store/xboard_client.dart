@@ -199,10 +199,25 @@ class XboardClient {
     );
   }
 
+  /// The subscription endpoint carries the traffic figures, the plan and the
+  /// signed share link; `user/info` only adds the balance, so both feed one
+  /// record and a failure of either still yields an account to show.
   Future<XboardUserInfo> fetchUserInfo() async {
-    final data = await _request('/user/info');
-    if (data is! Map) throw const XboardException('Malformed user info');
-    return XboardUserInfo.fromJson(data.cast<String, Object?>());
+    final info = await _readMap('/user/info');
+    final subscribe = await _readMap('/user/getSubscribe');
+    if (info.isEmpty && subscribe.isEmpty) {
+      throw const XboardException('Malformed user info');
+    }
+    return XboardUserInfo.fromJson({...info, ...subscribe});
+  }
+
+  Future<Map<String, Object?>> _readMap(String path) async {
+    try {
+      final data = await _request(path);
+      return asMap(data);
+    } catch (_) {
+      return const {};
+    }
   }
 
   Future<int?> fetchBalance() async {
@@ -216,18 +231,25 @@ class XboardClient {
 
   /// Builds the share link for the signed-in account; [subPath] is the
   /// panel's `subscribe_url` value and already carries the token.
-  String subscribeLink(XboardUserInfo info, {String client = 'clash'}) {
-    final base = info.subscribeUrl;
-    if (base.isEmpty) return '';
-    final separator = base.contains('?') ? '&' : '?';
-    if (base.contains('token=')) return base;
-    return '$base${separator}token=${_token ?? ''}';
+  String subscribeLink(XboardUserInfo info) => info.subscribeUrl;
+
+  Future<List<XboardPaymentMethod>> fetchPaymentMethods() async {
+    final data = await _request('/user/order/getPaymentMethod');
+    if (data is! List) return [];
+    return [
+      for (final item in data.whereType<Map>())
+        XboardPaymentMethod(
+          id: asIntOr(item['id'], 0),
+          name: asString(item['name'], asString(item['payment'])),
+        ),
+    ];
   }
 
   Future<XboardOrder> createOrder({
     required int planId,
     required String period,
     String? couponCode,
+    int? paymentId,
     String? url,
   }) async {
     final data = await _request(
@@ -237,6 +259,7 @@ class XboardClient {
         'plan_id': planId,
         'period': period,
         if (url != null && url.isNotEmpty) 'url': url,
+        if (paymentId != null && paymentId > 0) 'payment_id': paymentId,
         if (couponCode != null && couponCode.isNotEmpty)
           'coupon_code': couponCode.trim(),
       },

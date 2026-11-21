@@ -146,20 +146,29 @@ class XboardSession {
     });
   }
 
+  List<XboardPaymentMethod> _paymentMethods = const [];
+
+  List<XboardPaymentMethod> get paymentMethods => _paymentMethods;
+
+  Future<void> loadPaymentMethods() async {
+    _paymentMethods = await _client.fetchPaymentMethods();
+    _notify();
+  }
+
   Future<XboardOrder> buy({
     required XboardPlan plan,
     required XboardPlanPeriod period,
     String? coupon,
+    int? paymentId,
   }) {
-    return _run(() async {
-      final order = await _client.createOrder(
+    return _run(
+      () => _client.createOrder(
         planId: plan.id,
         period: period.period,
         couponCode: coupon,
-        url: null,
-      );
-      return order;
-    });
+        paymentId: paymentId,
+      ),
+    );
   }
 
   Future<String> pay({required String tradeNo, required String method}) {

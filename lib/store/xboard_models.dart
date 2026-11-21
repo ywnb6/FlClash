@@ -152,7 +152,9 @@ class XboardUserInfo {
       download: asIntOr(json['d'], 0),
       expiredAt: asInt(json['expired_at']),
       subscribeUrl: asString(json['subscribe_url']),
-      planName: asStringOrNull(json['plan_name']),
+      planName: asStringOrNull(
+        json['plan_name'] ?? asMap(json['plan'])['name'],
+      ),
       discount: asInt(json['discount']),
       banned: asIntOr(json['banned'], 0),
     );
@@ -202,4 +204,11 @@ class XboardOrder {
       methods: methods.isEmpty ? null : methods,
     );
   }
+}
+
+class XboardPaymentMethod {
+  const XboardPaymentMethod({required this.id, required this.name});
+
+  final int id;
+  final String name;
 }
