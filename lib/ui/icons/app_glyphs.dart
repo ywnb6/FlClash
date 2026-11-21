@@ -832,6 +832,25 @@ abstract final class AppGlyphs {
     ], role: GlyphRole.line),
   ]);
 
+  static const store = Glyph([
+    GlyphPolyline([
+      GlyphVertex(4, 8),
+      GlyphVertex(3, 20),
+      GlyphVertex(21, 20),
+      GlyphVertex(20, 8),
+    ], closed: true),
+    GlyphPolyline([
+      GlyphVertex(4, 8),
+      GlyphVertex(20, 8),
+    ], role: GlyphRole.line),
+    GlyphPolyline([
+      GlyphVertex(8.5, 11),
+      GlyphVertex(8.5, 13.2, 2),
+      GlyphVertex(15.5, 13.2, 2),
+      GlyphVertex(15.5, 11),
+    ], role: GlyphRole.detail),
+  ]);
+
   static const settings = Glyph([
     GlyphPolyline([
       GlyphVertex(9.87, 5.44, 0.6),

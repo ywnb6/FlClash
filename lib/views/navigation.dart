@@ -2,6 +2,7 @@ import 'package:fl_clash/common/app_ports.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/ui/icons/app_glyphs.dart';
+import 'package:fl_clash/store/store_view.dart';
 import 'package:fl_clash/views/views.dart';
 
 class Navigation implements NavigationPort {
@@ -56,6 +57,12 @@ class Navigation implements NavigationPort {
         modes: openLogs
             ? [NavigationItemMode.desktop, NavigationItemMode.more]
             : [],
+      ),
+      NavigationItem(
+        glyph: AppGlyphs.store,
+        label: PageLabel.store,
+        builder: (_) => const StoreView(),
+        modes: [NavigationItemMode.mobile, NavigationItemMode.desktop],
       ),
       NavigationItem(
         glyph: AppGlyphs.tools,

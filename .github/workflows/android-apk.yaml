@@ -1,0 +1,136 @@
+name: android-apk
+
+on:
+  workflow_dispatch:
+    inputs:
+      arch:
+        description: 'Target ABI'
+        required: true
+        default: 'arm64'
+        type: choice
+        options:
+          - arm64
+          - armeabi-v7a
+          - x86_64
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'lib/store/**'
+      - '.github/workflows/android-apk.yaml'
+
+concurrency:
+  group: android-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: '3.50.0'
+  GO_VERSION: '1.27.1'
+  NDK_VERSION: r28c
+
+jobs:
+  build:
+    name: Build ${{ github.event.inputs.arch || 'arm64' }} APK
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: |
+            core/go.sum
+            android/core/build.gradle.kts
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Setup NDK
+        uses: nttld/setup-ndk@v1
+        id: ndk
+        with:
+          ndk-version: ${{ env.NDK_VERSION }}
+          add-to-path: true
+          link-to-sdk: true
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Install dependencies
+        run: |
+          flutter --version
+          flutter pub get
+          flutter gen-l10n
+
+      - name: Fetch CA certificates
+        shell: bash
+        env:
+          CA_BUNDLE: cacert-2026-09-25.pem
+          CA_BUNDLE_SHA256: a41b5d356aea97a529fe27e0f7316d2f9d946d75927476cf9cf1b90637d00505
+        run: |
+          bundle=core/Clash.Meta/component/ca/ca-certificates.crt
+          curl -fsSL --retry 3 -o "$bundle" "https://curl.se/ca/$CA_BUNDLE"
+          echo "$CA_BUNDLE_SHA256  $bundle" | sha256sum -c -
+
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos || true
+
+      - name: Package APK
+        env:
+          ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
+          ARCH_INPUT: ${{ github.event.inputs.arch || 'arm64' }}
+        run: |
+          dart tool/package.dart android --arch "$ARCH_INPUT" --env stable -v
+
+      - name: Sign with a throwaway key when no release key exists
+        env:
+          ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
+        run: |
+          if [ -f android/app/keystore.jks ]; then
+            echo 'release keystore present, packaged APKs are signed'
+          else
+            echo 'no release keystore; APK is signed by CI debug key'
+            find dist -name '*.apk' -maxdepth 2 -print
+          fi
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: flclash-apk-${{ github.event.inputs.arch || 'arm64' }}
+          path: |
+            dist/*.apk
+            dist/manifest.json
+            dist/*SHA256SUMS
+          if-no-files-found: error
+          overwrite: true
+
+      - name: Summary
+        run: |
+          {
+            echo '## APK built'
+            echo
+            echo '| file | size |'
+            echo '| --- | --- |'
+            for f in dist/*.apk; do
+              [ -e "$f" ] || continue
+              echo "| \`$(basename "$f")\` | $(du -h "$f" | cut -f1) |"
+            done
+            echo
+            echo 'Download it from the **Artifacts** section of this run.'
+          } >> "$GITHUB_STEP_SUMMARY"
