@@ -168,6 +168,9 @@ jobs:
           tag="v${RELEASE_VERSION}"
           short=$(git rev-parse --short=7 HEAD)
           echo "publishing $tag from $short"
+          if ! ls dist/*.apk >/dev/null 2>&1; then
+            gh run download "$GITHUB_RUN_ID" -n "flclash-apk-${ARCH_INPUT}" -D dist
+          fi
           apk=$(ls dist/*.apk | head -1)
           name="FlClash-${RELEASE_VERSION}-android-${ARCH_INPUT}.apk"
           cp "$apk" "/tmp/$name"
