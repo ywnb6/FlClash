@@ -1175,5 +1175,7 @@
   "storeSendCode": "发送验证码",
   "storeCodeSent": "验证码已发送，请查收邮箱",
   "storeFillEmail": "请先填写邮箱",
-  "storeFillCode": "请填写邮箱验证码"
+  "storeFillCode": "请填写邮箱验证码",
+  "storeEmailNotAllowed": "该邮箱后缀不被本站支持",
+  "storeFillInvite": "请填写邀请码"
 }

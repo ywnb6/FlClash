@@ -147,9 +147,9 @@ class XboardClient {
     return Uri.tryParse(_baseUrl)?.host ?? _baseUrl;
   }
 
-  Future<Map<String, Object?>> commonConfig() async {
+  Future<XboardSiteConfig> fetchSiteConfig() async {
     final data = await _request('/guest/comm/config', auth: false);
-    return data is Map ? data.cast<String, Object?>() : <String, Object?>{};
+    return XboardSiteConfig.fromJson(asMap(data));
   }
 
   Future<List<XboardPlan>> fetchPlans() async {

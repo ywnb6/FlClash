@@ -1290,5 +1290,7 @@
   "storeSendCode": "Send code",
   "storeCodeSent": "Code sent, check your inbox",
   "storeFillEmail": "Enter your email first",
-  "storeFillCode": "Enter the email code"
+  "storeFillCode": "Enter the email code",
+  "storeEmailNotAllowed": "This email domain is not accepted",
+  "storeFillInvite": "Enter the invite code"
 }

@@ -1175,5 +1175,7 @@
   "storeSendCode": "コードを送信",
   "storeCodeSent": "コードを送信しました",
   "storeFillEmail": "先にメールを入力してください",
-  "storeFillCode": "認証コードを入力してください"
+  "storeFillCode": "認証コードを入力してください",
+  "storeEmailNotAllowed": "このメールドメインは使用できません",
+  "storeFillInvite": "招待コードを入力してください"
 }

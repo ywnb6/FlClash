@@ -19,6 +19,7 @@ class XboardSession {
 
   String _baseUrl = XboardClient.defaultBaseUrl;
   String _siteName = '';
+  XboardSiteConfig _siteConfig = const XboardSiteConfig();
   String? _token;
   XboardUserInfo? _userInfo;
   List<XboardPlan> _plans = const [];
@@ -35,6 +36,8 @@ class XboardSession {
 
   /// The panel's own name, falling back to its host.
   String get siteName => _siteName.isNotEmpty ? _siteName : _baseUrl;
+
+  XboardSiteConfig get siteConfig => _siteConfig;
 
   String? get token => _token;
 
@@ -60,13 +63,18 @@ class XboardSession {
     _client
       ..token = _token
       ..userAgent = _preferences?.getString(_userAgentKey) ?? '';
+    await loadSiteInfo();
     _notify();
   }
 
-  Future<void> loadSiteName({bool force = false}) async {
+  /// Pulls everything the panel publishes about itself: its name, signup
+  /// rules and logo, so a panel-side change shows up on the next load.
+  Future<void> loadSiteInfo({bool force = false}) async {
     if (_siteName.isNotEmpty && !force) return;
+    try {
+      _siteConfig = await _client.fetchSiteConfig();
+    } catch (_) {}
     _siteName = await _client.fetchSiteName();
-    await loadSiteName();
     _notify();
   }
 
@@ -81,6 +89,7 @@ class XboardSession {
     }
     _baseUrl = url;
     _siteName = '';
+    _siteConfig = const XboardSiteConfig();
     await _preferences?.setString(_baseUrlKey, url);
     _plans = const [];
     _notify();

@@ -1175,5 +1175,7 @@
   "storeSendCode": "Enviar código",
   "storeCodeSent": "Código enviado, revisa tu correo",
   "storeFillEmail": "Introduce primero el correo",
-  "storeFillCode": "Introduce el código"
+  "storeFillCode": "Introduce el código",
+  "storeEmailNotAllowed": "Este dominio no se acepta",
+  "storeFillInvite": "Introduce el código de invitación"
 }

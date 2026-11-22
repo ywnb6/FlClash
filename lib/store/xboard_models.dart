@@ -212,3 +212,47 @@ class XboardPaymentMethod {
   final int id;
   final String name;
 }
+
+/// What the panel decides about signing up; the shop follows it instead of
+/// assuming a form shape, so a change on the panel reaches the app on refresh.
+class XboardSiteConfig {
+  const XboardSiteConfig({
+    this.needEmailVerify = false,
+    this.needInviteCode = false,
+    this.logo = '',
+    this.appUrl = '',
+    this.description = '',
+    this.emailSuffixes = const [],
+  });
+
+  final bool needEmailVerify;
+  final bool needInviteCode;
+  final String logo;
+  final String appUrl;
+  final String description;
+  final List<String> emailSuffixes;
+
+  factory XboardSiteConfig.fromJson(Map<String, Object?> json) {
+    final suffixes = json['email_whitelist_suffix'];
+    return XboardSiteConfig(
+      needEmailVerify: asBool(json['is_email_verify'], fallback: false),
+      needInviteCode: asBool(json['is_invite_force'], fallback: false),
+      logo: asString(json['logo']),
+      appUrl: asString(json['app_url']),
+      description: asString(json['app_description']),
+      emailSuffixes: [
+        if (suffixes is List)
+          for (final suffix in suffixes)
+            if (asStringOrNull(suffix) != null) asString(suffix),
+      ],
+    );
+  }
+
+  bool accepts(String email) {
+    if (emailSuffixes.isEmpty) return true;
+    final at = email.lastIndexOf('@');
+    if (at < 0) return true;
+    final suffix = email.substring(at + 1).toLowerCase();
+    return emailSuffixes.any((item) => item.toLowerCase() == suffix);
+  }
+}

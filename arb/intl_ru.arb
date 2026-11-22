@@ -1175,5 +1175,7 @@
   "storeSendCode": "Отправить код",
   "storeCodeSent": "Код отправлен, проверьте почту",
   "storeFillEmail": "Сначала введите почту",
-  "storeFillCode": "Введите код из письма"
+  "storeFillCode": "Введите код из письма",
+  "storeEmailNotAllowed": "Домен почты не поддерживается",
+  "storeFillInvite": "Введите код приглашения"
 }

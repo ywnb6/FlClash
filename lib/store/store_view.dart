@@ -50,6 +50,7 @@ class _StoreViewState extends ConsumerState<StoreView> {
       _error = null;
     });
     try {
+      await session.loadSiteInfo(force: force);
       await session.loadPlans(force: force);
       if (session.isSignedIn) {
         await session.refreshUserInfo();
@@ -566,19 +567,25 @@ class _SignInSheetState extends State<_SignInSheet> {
       setState(() => _error = appLocalizations.storeFillAll);
       return;
     }
+    final config = widget.session.siteConfig;
+    if (_register && !config.accepts(email)) {
+      setState(() => _error = appLocalizations.storeEmailNotAllowed);
+      return;
+    }
+    if (_register && config.needEmailVerify && _code.text.trim().isEmpty) {
+      setState(() => _error = appLocalizations.storeFillCode);
+      return;
+    }
+    if (_register && config.needInviteCode && _invite.text.trim().isEmpty) {
+      setState(() => _error = appLocalizations.storeFillInvite);
+      return;
+    }
     setState(() {
       _busy = true;
       _error = null;
     });
     try {
       if (_register) {
-        if (_code.text.trim().isEmpty) {
-          setState(() {
-            _busy = false;
-            _error = appLocalizations.storeFillCode;
-          });
-          return;
-        }
         await widget.session.register(
           email: email,
           password: password,
@@ -603,6 +610,9 @@ class _SignInSheetState extends State<_SignInSheet> {
   Widget build(BuildContext context) {
     final appLocalizations = context.appLocalizations;
     final colors = context.colorScheme;
+    final config = widget.session.siteConfig;
+    final needCode = _register && config.needEmailVerify;
+    final needInvite = _register && config.needInviteCode;
     return Scaffold(
       title: _register
           ? appLocalizations.storeRegister
@@ -637,7 +647,7 @@ class _SignInSheetState extends State<_SignInSheet> {
                   onFieldSubmitted: (_) => _submit(),
                 ),
               ),
-              if (_register) ...[
+              if (needCode)
                 ListItem(
                   title: FormRowTextField(
                     controller: _code,
@@ -659,6 +669,7 @@ class _SignInSheetState extends State<_SignInSheet> {
                           ),
                   ),
                 ),
+              if (needInvite)
                 ListItem(
                   title: FormRowTextField(
                     controller: _invite,
@@ -667,7 +678,6 @@ class _SignInSheetState extends State<_SignInSheet> {
                     enableSuggestions: false,
                   ),
                 ),
-              ],
             ],
           ),
           if (_error != null)
