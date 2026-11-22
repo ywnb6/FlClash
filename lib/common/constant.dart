@@ -143,7 +143,10 @@ const repository = 'ywnb6/FlClash';
 const customRepositoryKey = 'custom_repository';
 const maxMobileWidth = 600;
 const maxLaptopWidth = 840;
-const defaultTestUrl = 'https://www.gstatic.com/generate_204';
+/// Reachable from mainland China without a proxy, so a delay test reports the
+/// node itself rather than the route to Google; panels serving direct and
+/// transit nodes alike measure against it.
+const defaultTestUrl = 'http://www.qualcomm.cn/generate_204';
 
 const shareLinkSchemes = {
   'hysteria',
