@@ -294,15 +294,13 @@ class _AccountCard extends StatelessWidget {
               context.appLocalizations.storeWelcome,
               style: AppTextStyle.title3.of(context, emphasized: true),
             ),
-            if ((session?.siteName ?? '').isNotEmpty) ...[
-              const SizedBox(height: 6),
-              Text(
-                session!.siteName,
-                style: AppTextStyle.footnote
-                    .of(context)
-                    .copyWith(color: colors.onSurfaceVariant),
-              ),
-            ],
+            const SizedBox(height: 6),
+            Text(
+              session?.siteName ?? XboardClient.defaultSiteName,
+              style: AppTextStyle.footnote
+                  .of(context)
+                  .copyWith(color: colors.onSurfaceVariant),
+            ),
             const SizedBox(height: 16),
             FilledButton(
               onPressed: onSignIn,
@@ -598,9 +596,7 @@ class _SignInSheetState extends State<_SignInSheet> {
         ),
         children: [
           generateSection(
-            title: widget.session.siteName.isEmpty
-                ? null
-                : widget.session.siteName,
+            title: widget.session.siteName,
             items: [
               ListItem(
                 title: FormRowTextField(
@@ -1018,9 +1014,7 @@ class _SettingsSheetState extends State<_SettingsSheet> {
                       .of(context)
                       .copyWith(color: context.colorScheme.onSurfaceVariant),
                 ),
-              ),
-              ListItem(
-                title: FormRowTextField(
+                trailing: FormRowTextField(
                   controller: _url,
                   hintText: appLocalizations.storePanelUrl,
                   keyboardType: TextInputType.url,

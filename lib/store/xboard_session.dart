@@ -35,11 +35,8 @@ class XboardSession {
   String get baseUrl => _baseUrl;
 
   /// The panel's own name; the app never shows the address in its place.
-  String get siteName {
-    if (_siteName.isNotEmpty) return _siteName;
-    final description = _siteConfig.description.trim();
-    return description.isNotEmpty ? description : '';
-  }
+  String get siteName =>
+      _siteName.isNotEmpty ? _siteName : XboardClient.defaultSiteName;
 
   XboardSiteConfig get siteConfig => _siteConfig;
 

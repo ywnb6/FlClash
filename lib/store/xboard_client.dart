@@ -21,6 +21,10 @@ class XboardClient {
 
   static const defaultBaseUrl = 'https://plan.zzyo.top';
 
+  /// Shown wherever the app would otherwise print the address; the panel's own
+  /// page title overrides it once fetched.
+  static const defaultSiteName = '易挽机场';
+
   static String _normalize(String value) {
     var url = value.trim();
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
@@ -125,26 +129,37 @@ class XboardClient {
     }
   }
 
-  /// The panel exposes no site name over JSON, so the page title stands in
-  /// for it; an unreachable or unknown name falls back to the host.
+  /// The panel publishes its name only in the page it serves, so the site
+  /// root is read once and both the title tag and the `settings` object are
+  /// tried; the name is cached for the session by the caller.
   Future<String> fetchSiteName() async {
-    try {
-      final response = await _dio.get<String>(
-        '/',
-        options: Options(
-          headers: {'User-Agent': _userAgent},
-          responseType: ResponseType.plain,
-        ),
-      );
-      final body = response.data ?? '';
-      final title = RegExp(
-        r'title:\s*[\x27"]([^\x27"]+)[\x27"]',
-      ).firstMatch(body);
-      final tag = RegExp(r'<title>([^<]+)</title>').firstMatch(body);
-      final name = (title?.group(1) ?? tag?.group(1) ?? '').trim();
-      if (name.isNotEmpty) return name;
-    } catch (_) {}
-    return Uri.tryParse(_baseUrl)?.host ?? _baseUrl;
+    for (final path in const ['/', '/index.html']) {
+      try {
+        final response = await Dio(
+          BaseOptions(
+            connectTimeout: const Duration(seconds: 12),
+            receiveTimeout: const Duration(seconds: 12),
+            validateStatus: (_) => true,
+            responseType: ResponseType.plain,
+          ),
+        ).get<String>(
+          '$_baseUrl$path',
+          options: Options(headers: {'User-Agent': _userAgent}),
+        );
+        final body = response.data ?? '';
+        if (body.isEmpty) continue;
+        final settings = RegExp(
+          r'title:\s*[\x27"]([^\x27"]+)[\x27"]',
+        ).firstMatch(body);
+        final tag = RegExp(
+          r'<title[^>]*>([^<]+)</title>',
+          caseSensitive: false,
+        ).firstMatch(body);
+        final name = (settings?.group(1) ?? tag?.group(1) ?? '').trim();
+        if (name.isNotEmpty) return name;
+      } catch (_) {}
+    }
+    return '';
   }
 
   Future<XboardSiteConfig> fetchSiteConfig() async {
