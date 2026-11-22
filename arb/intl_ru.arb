@@ -1184,5 +1184,13 @@
   "storeCopyLink": "Копировать",
   "storeLinkCopied": "Ссылка скопирована",
   "storeDesign": "Дизайн магазина",
-  "storeUpdateSource": "Источник обновлений"
+  "storeUpdateSource": "Источник обновлений",
+  "storePayTip": "Оплатите в WeChat, Alipay или браузере",
+  "storeOpenPayPage": "Открыть страницу оплаты",
+  "storePayLink": "Ссылка оплаты",
+  "storeWaitingPay": "Ожидание оплаты…",
+  "storePaid": "Оплата прошла",
+  "storePaidTip": "Тариф активирован",
+  "storeOrders": "Заказы",
+  "storeCancelOrder": "Отменить заказ"
 }

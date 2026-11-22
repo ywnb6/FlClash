@@ -1184,5 +1184,13 @@
   "storeCopyLink": "リンクをコピー",
   "storeLinkCopied": "コピーしました",
   "storeDesign": "アプリストアデザイン",
-  "storeUpdateSource": "更新元"
+  "storeUpdateSource": "更新元",
+  "storePayTip": "WeChatまたはAlipayでお支払いください",
+  "storeOpenPayPage": "支払いページを開く",
+  "storePayLink": "支払いリンク",
+  "storeWaitingPay": "支払いを待っています…",
+  "storePaid": "支払い完了",
+  "storePaidTip": "プランが有効になりました",
+  "storeOrders": "注文履歴",
+  "storeCancelOrder": "注文をキャンセル"
 }

@@ -1299,5 +1299,13 @@
   "storeCopyLink": "Copy link",
   "storeLinkCopied": "Link copied",
   "storeDesign": "App store design",
-  "storeUpdateSource": "Update source"
+  "storeUpdateSource": "Update source",
+  "storePayTip": "Pay in WeChat or Alipay, or finish in the browser",
+  "storeOpenPayPage": "Open payment page",
+  "storePayLink": "Payment link",
+  "storeWaitingPay": "Waiting for payment…",
+  "storePaid": "Payment complete",
+  "storePaidTip": "The plan is active, import the subscription",
+  "storeOrders": "Orders",
+  "storeCancelOrder": "Cancel order"
 }

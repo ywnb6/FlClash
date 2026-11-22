@@ -291,6 +291,8 @@ class XboardClient {
     ];
   }
 
+  /// The panel answers with the trade number itself rather than an object,
+  /// and `checkout` takes the payment method's numeric id, not its name.
   Future<XboardOrder> createOrder({
     required int planId,
     required String period,
@@ -310,11 +312,21 @@ class XboardClient {
           'coupon_code': couponCode.trim(),
       },
     );
-    if (data is! Map) throw const XboardException('Malformed order');
-    return XboardOrder.fromJson(data.cast<String, Object?>());
+    if (data is Map) {
+      final order = XboardOrder.fromJson(asMap(data));
+      if (order.tradeNo.isNotEmpty) return order;
+      throw const XboardException('Malformed order');
+    }
+    final tradeNo = asStringOrNull(data);
+    if (tradeNo == null || tradeNo.isEmpty) {
+      throw const XboardException('Malformed order');
+    }
+    return XboardOrder(tradeNo: tradeNo);
   }
 
-  Future<String> checkout({
+  /// The answer is `{type, data}`: type 1 carries a payment page to open,
+  /// type 0 a bare QR payload, and a plain string is the URL itself.
+  Future<XboardPayment> checkout({
     required String tradeNo,
     required String method,
   }) async {
@@ -324,11 +336,38 @@ class XboardClient {
       data: {'trade_no': tradeNo, 'method': method},
     );
     if (data is Map) {
-      final value = data['data'] ?? data['url'] ?? data['pay_url'];
-      final url = asStringOrNull(value);
-      if (url != null) return url;
+      final map = asMap(data);
+      final payload = asStringOrNull(map['data']) ?? asStringOrNull(map['url']);
+      if (payload == null || payload.isEmpty) {
+        throw const XboardException('Malformed payment');
+      }
+      return XboardPayment(
+        isRedirect: asIntOr(map['type'], 1) == 1,
+        payload: payload,
+      );
     }
-    return asStringOrNull(data) ?? '';
+    final payload = asStringOrNull(data);
+    if (payload == null || payload.isEmpty) {
+      throw const XboardException('Malformed payment');
+    }
+    return XboardPayment(isRedirect: true, payload: payload);
+  }
+
+  Future<List<XboardOrderRecord>> fetchOrders() async {
+    final data = await _request('/user/order/fetch');
+    if (data is! List) return const [];
+    return [
+      for (final item in data.whereType<Map>())
+        XboardOrderRecord.fromJson(asMap(item)),
+    ];
+  }
+
+  Future<void> cancelOrder(String tradeNo) async {
+    await _request(
+      '/user/order/cancel',
+      method: 'POST',
+      data: {'trade_no': tradeNo},
+    );
   }
 
   Future<int?> orderStatus({required String tradeNo}) async {

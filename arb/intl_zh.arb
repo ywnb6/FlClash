@@ -1184,5 +1184,13 @@
   "storeCopyLink": "复制链接",
   "storeLinkCopied": "链接已复制",
   "storeDesign": "应用商店设计",
-  "storeUpdateSource": "检查更新来源"
+  "storeUpdateSource": "检查更新来源",
+  "storePayTip": "请用微信或支付宝扫码，或在浏览器中完成支付",
+  "storeOpenPayPage": "打开支付页面",
+  "storePayLink": "支付链接",
+  "storeWaitingPay": "等待支付结果…",
+  "storePaid": "支付成功",
+  "storePaidTip": "套餐已开通，可直接导入订阅",
+  "storeOrders": "订单记录",
+  "storeCancelOrder": "取消订单"
 }

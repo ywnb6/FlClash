@@ -266,3 +266,83 @@ class XboardSiteConfig {
     return emailSuffixes.any((item) => item.toLowerCase() == suffix);
   }
 }
+
+/// What the panel hands back for a payment: a page to open, or a payload the
+/// app renders as a code.
+class XboardPayment {
+  const XboardPayment({required this.isRedirect, required this.payload});
+
+  final bool isRedirect;
+  final String payload;
+
+  String get url => payload;
+}
+
+class XboardOrderRecord {
+  const XboardOrderRecord({
+    required this.tradeNo,
+    required this.planName,
+    required this.period,
+    required this.totalAmount,
+    required this.status,
+    required this.createdAt,
+  });
+
+  final String tradeNo;
+  final String planName;
+  final String period;
+  final int totalAmount;
+  final int status;
+  final int createdAt;
+
+  factory XboardOrderRecord.fromJson(Map<String, Object?> json) {
+    return XboardOrderRecord(
+      tradeNo: asString(json['trade_no']),
+      planName: asString(asMap(json['plan'])['name'], asString(json['plan_id'])),
+      period: asString(json['period']),
+      totalAmount: asIntOr(json['total_amount'], 0),
+      status: asIntOr(json['status'], 0),
+      createdAt: asIntOr(json['created_at'], 0),
+    );
+  }
+
+  bool get isPending => status == 0;
+
+  String periodLabel(String locale) {
+    final zh = locale.startsWith('zh');
+    switch (period) {
+      case 'month_price':
+        return zh ? '月付' : 'Monthly';
+      case 'quarter_price':
+        return zh ? '季付' : 'Quarterly';
+      case 'half_year_price':
+        return zh ? '半年' : '6 months';
+      case 'year_price':
+        return zh ? '年付' : 'Yearly';
+      case 'two_year_price':
+        return zh ? '两年' : '2 years';
+      case 'three_year_price':
+        return zh ? '三年' : '3 years';
+      case 'onetime_price':
+        return zh ? '一次性' : 'One time';
+      default:
+        return period;
+    }
+  }
+
+  String statusLabel(String locale) {
+    final zh = locale.startsWith('zh');
+    switch (status) {
+      case 0:
+        return zh ? '待支付' : 'Unpaid';
+      case 1:
+        return zh ? '开通中' : 'Processing';
+      case 2:
+        return zh ? '已完成' : 'Completed';
+      case 3:
+        return zh ? '已取消' : 'Cancelled';
+      default:
+        return '$status';
+    }
+  }
+}

@@ -1184,5 +1184,13 @@
   "storeCopyLink": "Copiar enlace",
   "storeLinkCopied": "Enlace copiado",
   "storeDesign": "Diseño de la tienda",
-  "storeUpdateSource": "Origen de actualización"
+  "storeUpdateSource": "Origen de actualización",
+  "storePayTip": "Paga en WeChat, Alipay o el navegador",
+  "storeOpenPayPage": "Abrir página de pago",
+  "storePayLink": "Enlace de pago",
+  "storeWaitingPay": "Esperando el pago…",
+  "storePaid": "Pago completado",
+  "storePaidTip": "El plan está activo",
+  "storeOrders": "Pedidos",
+  "storeCancelOrder": "Cancelar pedido"
 }

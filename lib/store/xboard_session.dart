@@ -193,8 +193,21 @@ class XboardSession {
     );
   }
 
-  Future<String> pay({required String tradeNo, required String method}) {
-    return _run(() => _client.checkout(tradeNo: tradeNo, method: method));
+  Future<XboardPayment> pay({
+    required String tradeNo,
+    required int methodId,
+  }) {
+    return _run(
+      () => _client.checkout(tradeNo: tradeNo, method: '$methodId'),
+    );
+  }
+
+  Future<List<XboardOrderRecord>> fetchOrders() {
+    return _run(() => _client.fetchOrders());
+  }
+
+  Future<void> cancelOrder(String tradeNo) async {
+    await _run(() => _client.cancelOrder(tradeNo));
   }
 
   Future<void> sendEmailVerify(String email) async {

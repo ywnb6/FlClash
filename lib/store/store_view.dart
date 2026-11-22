@@ -7,6 +7,7 @@ import 'package:fl_clash/providers/action.dart';
 import 'package:fl_clash/store/xboard_client.dart';
 import 'package:fl_clash/store/xboard_models.dart';
 import 'package:fl_clash/store/store_link_sheet.dart';
+import 'package:fl_clash/store/store_payment_sheet.dart';
 import 'package:fl_clash/store/xboard_session.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/ui/nested_sheet.dart';
@@ -797,28 +798,33 @@ class _PlanSheetState extends State<_PlanSheet> {
         coupon: _coupon.text,
         paymentId: _paymentId,
       );
-      final methodName = _selectedMethodKey(order.methods);
-      if (order.tradeNo.isNotEmpty && methodName != null) {
-        final url = await widget.session.pay(
-          tradeNo: order.tradeNo,
-          method: methodName,
-        );
-        if (!mounted) return;
-        setState(() => _busy = false);
-        if (url.isNotEmpty) {
-          await dialogs.openUrl(url);
-        }
+      if (!mounted) return;
+      if (_paymentId == null) {
+        await widget.session.refreshUserInfo();
         if (!mounted) return;
         Navigator.of(context).pop(true);
+        dialogs.showBanner(
+          currentAppLocalizations.storeOrderCreated,
+          level: BannerLevel.success,
+        );
         return;
       }
+      final payment = await widget.session.pay(
+        tradeNo: order.tradeNo,
+        methodId: _paymentId!,
+      );
+      if (!mounted) return;
+      setState(() => _busy = false);
+      await showStorePaymentSheet(
+        context,
+        payment: payment,
+        session: widget.session,
+        tradeNo: order.tradeNo,
+      );
+      if (!mounted) return;
       await widget.session.refreshUserInfo();
       if (!mounted) return;
       Navigator.of(context).pop(true);
-      dialogs.showBanner(
-        currentAppLocalizations.storeOrderCreated,
-        level: BannerLevel.success,
-      );
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -826,18 +832,6 @@ class _PlanSheetState extends State<_PlanSheet> {
         _error = _humanError(error);
       });
     }
-  }
-
-  String? _selectedMethodKey(Map<String, String>? methods) {
-    if (methods == null || methods.isEmpty) return null;
-    final chosen = _methods.where((method) => method.id == _paymentId);
-    if (chosen.isNotEmpty) {
-      final name = chosen.first.name;
-      for (final entry in methods.entries) {
-        if (entry.value == name) return entry.key;
-      }
-    }
-    return methods.keys.first;
   }
 
   @override

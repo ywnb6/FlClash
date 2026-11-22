@@ -1184,5 +1184,13 @@
   "storeCopyLink": "링크 복사",
   "storeLinkCopied": "링크를 복사했습니다",
   "storeDesign": "앱 스토어 디자인",
-  "storeUpdateSource": "업데이트 소스"
+  "storeUpdateSource": "업데이트 소스",
+  "storePayTip": "WeChat 또는 Alipay로 결제하세요",
+  "storeOpenPayPage": "결제 페이지 열기",
+  "storePayLink": "결제 링크",
+  "storeWaitingPay": "결제 대기 중…",
+  "storePaid": "결제 완료",
+  "storePaidTip": "요금제가 활성화되었습니다",
+  "storeOrders": "주문 내역",
+  "storeCancelOrder": "주문 취소"
 }
