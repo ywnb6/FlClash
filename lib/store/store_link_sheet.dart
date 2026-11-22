@@ -1,5 +1,5 @@
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/store/xboard_session.dart';
+import 'package:fl_clash/features/features.dart';
 import 'package:fl_clash/ui/nested_sheet.dart';
 import 'package:fl_clash/ui/scaffold/scaffold.dart';
 import 'package:fl_clash/widgets/widgets.dart';
