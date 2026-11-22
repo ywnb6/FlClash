@@ -218,7 +218,8 @@ class XboardPaymentMethod {
 class XboardSiteConfig {
   const XboardSiteConfig({
     this.needEmailVerify = false,
-    this.needInviteCode = false,
+    this.inviteRequired = false,
+    this.inviteEnabled = false,
     this.logo = '',
     this.appUrl = '',
     this.description = '',
@@ -226,7 +227,13 @@ class XboardSiteConfig {
   });
 
   final bool needEmailVerify;
-  final bool needInviteCode;
+
+  /// Whether an invite code is mandatory to sign up.
+  final bool inviteRequired;
+
+  /// Whether the panel accepts an invite code at all; an optional code is
+  /// offered but never demanded.
+  final bool inviteEnabled;
   final String logo;
   final String appUrl;
   final String description;
@@ -236,7 +243,10 @@ class XboardSiteConfig {
     final suffixes = json['email_whitelist_suffix'];
     return XboardSiteConfig(
       needEmailVerify: asBool(json['is_email_verify'], fallback: false),
-      needInviteCode: asBool(json['is_invite_force'], fallback: false),
+      inviteRequired: asBool(json['is_invite_force'], fallback: false),
+      inviteEnabled:
+          asBool(json['is_invite_force'], fallback: false) ||
+          asBool(json['is_invite'], fallback: true),
       logo: asString(json['logo']),
       appUrl: asString(json['app_url']),
       description: asString(json['app_description']),

@@ -1177,5 +1177,6 @@
   "storeFillEmail": "请先填写邮箱",
   "storeFillCode": "请填写邮箱验证码",
   "storeEmailNotAllowed": "该邮箱后缀不被本站支持",
-  "storeFillInvite": "请填写邀请码"
+  "storeFillInvite": "请填写邀请码",
+  "storeInviteCodeRequired": "邀请码（必填）"
 }

@@ -1177,5 +1177,6 @@
   "storeFillEmail": "Сначала введите почту",
   "storeFillCode": "Введите код из письма",
   "storeEmailNotAllowed": "Домен почты не поддерживается",
-  "storeFillInvite": "Введите код приглашения"
+  "storeFillInvite": "Введите код приглашения",
+  "storeInviteCodeRequired": "Код приглашения (обязательно)"
 }

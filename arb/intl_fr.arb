@@ -1177,5 +1177,6 @@
   "storeFillEmail": "Saisissez d'abord l'e-mail",
   "storeFillCode": "Saisissez le code",
   "storeEmailNotAllowed": "Ce domaine n'est pas accepté",
-  "storeFillInvite": "Saisissez le code d'invitation"
+  "storeFillInvite": "Saisissez le code d'invitation",
+  "storeInviteCodeRequired": "Code d'invitation (requis)"
 }

@@ -29,10 +29,22 @@ class _StoreViewState extends ConsumerState<StoreView> {
   String? _error;
   bool _signedIn = false;
 
+  Timer? _syncTimer;
+
   @override
   void initState() {
     super.initState();
     _bootstrap();
+    _syncTimer = Timer.periodic(
+      const Duration(minutes: 5),
+      (_) => _refresh(force: true),
+    );
+  }
+
+  @override
+  void dispose() {
+    _syncTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _bootstrap() async {
@@ -158,26 +170,15 @@ class _StoreViewState extends ConsumerState<StoreView> {
       return items;
     }
     items.add(
-      Padding(
-        padding: const EdgeInsets.only(top: 8, bottom: 8, left: 4),
-        child: Text(
-          context.appLocalizations.storePlans,
-          style: AppTextStyle.headline.of(context),
-        ),
+      generateSection(
+        title: context.appLocalizations.storePlans,
+        items: [
+          for (final plan in _plans)
+            _PlanRow(plan: plan, onTap: () => _openPlan(plan)),
+          if (_plans.isEmpty) _EmptyPlans(),
+        ],
       ),
     );
-    if (_plans.isEmpty) {
-      items.add(_EmptyPlans());
-      return items;
-    }
-    for (final plan in _plans) {
-      items.add(
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: _PlanCard(plan: plan, onTap: () => _openPlan(plan)),
-        ),
-      );
-    }
     return items;
   }
 
@@ -293,13 +294,15 @@ class _AccountCard extends StatelessWidget {
               context.appLocalizations.storeWelcome,
               style: AppTextStyle.title3.of(context, emphasized: true),
             ),
-            const SizedBox(height: 6),
-            Text(
-              session?.siteName ?? XboardClient.defaultBaseUrl,
-              style: AppTextStyle.footnote
-                  .of(context)
-                  .copyWith(color: colors.onSurfaceVariant),
-            ),
+            if ((session?.siteName ?? '').isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Text(
+                session!.siteName,
+                style: AppTextStyle.footnote
+                    .of(context)
+                    .copyWith(color: colors.onSurfaceVariant),
+              ),
+            ],
             const SizedBox(height: 16),
             FilledButton(
               onPressed: onSignIn,
@@ -409,8 +412,8 @@ class _Metric extends StatelessWidget {
   }
 }
 
-class _PlanCard extends StatelessWidget {
-  const _PlanCard({required this.plan, required this.onTap});
+class _PlanRow extends StatelessWidget {
+  const _PlanRow({required this.plan, required this.onTap});
 
   final XboardPlan plan;
   final VoidCallback onTap;
@@ -418,57 +421,25 @@ class _PlanCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context).languageCode;
-    final colors = context.colorScheme;
     final periods = plan.periods;
-    return Card(
-      onPressed: onTap,
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(plan.name, style: AppTextStyle.headline.of(context)),
-          const SizedBox(height: 8),
-          if (plan.transferEnable != null)
-            Text(
-              formatPlanTraffic(plan.transferEnable!),
+    final subtitle = [
+      if (plan.transferEnable != null) formatPlanTraffic(plan.transferEnable!),
+      for (final period in periods)
+        '${period.label(locale)} ${formatPrice(period.price)}',
+    ].join(' · ');
+    return ListItem(
+      title: Text(plan.name),
+      subtitle: subtitle.isEmpty
+          ? null
+          : Text(
+              subtitle,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: AppTextStyle.footnote
                   .of(context)
-                  .copyWith(color: colors.onSurfaceVariant),
+                  .copyWith(color: context.colorScheme.onSurfaceVariant),
             ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final period in periods)
-                _PriceTag(
-                  label:
-                      '${period.label(locale)} ${formatPrice(period.price)}',
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PriceTag extends StatelessWidget {
-  const _PriceTag({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: context.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        child: Text(label, style: AppTextStyle.footnote.of(context)),
-      ),
+      onTap: onTap,
     );
   }
 }
@@ -576,7 +547,7 @@ class _SignInSheetState extends State<_SignInSheet> {
       setState(() => _error = appLocalizations.storeFillCode);
       return;
     }
-    if (_register && config.needInviteCode && _invite.text.trim().isEmpty) {
+    if (_register && config.inviteRequired && _invite.text.trim().isEmpty) {
       setState(() => _error = appLocalizations.storeFillInvite);
       return;
     }
@@ -612,7 +583,8 @@ class _SignInSheetState extends State<_SignInSheet> {
     final colors = context.colorScheme;
     final config = widget.session.siteConfig;
     final needCode = _register && config.needEmailVerify;
-    final needInvite = _register && config.needInviteCode;
+    final showInvite = _register && config.inviteEnabled;
+    final inviteRequired = _register && config.inviteRequired;
     return Scaffold(
       title: _register
           ? appLocalizations.storeRegister
@@ -626,7 +598,9 @@ class _SignInSheetState extends State<_SignInSheet> {
         ),
         children: [
           generateSection(
-            title: widget.session.siteName,
+            title: widget.session.siteName.isEmpty
+                ? null
+                : widget.session.siteName,
             items: [
               ListItem(
                 title: FormRowTextField(
@@ -669,11 +643,13 @@ class _SignInSheetState extends State<_SignInSheet> {
                           ),
                   ),
                 ),
-              if (needInvite)
+              if (showInvite)
                 ListItem(
                   title: FormRowTextField(
                     controller: _invite,
-                    hintText: appLocalizations.storeInviteCode,
+                    hintText: inviteRequired
+                        ? appLocalizations.storeInviteCodeRequired
+                        : appLocalizations.storeInviteCode,
                     autocorrect: false,
                     enableSuggestions: false,
                   ),
@@ -1036,9 +1012,17 @@ class _SettingsSheetState extends State<_SettingsSheet> {
             items: [
               ListItem(
                 title: Text(appLocalizations.storePanelUrl),
-                subtitle: FormRowTextField(
+                subtitle: Text(
+                  widget.session.siteName,
+                  style: AppTextStyle.footnote
+                      .of(context)
+                      .copyWith(color: context.colorScheme.onSurfaceVariant),
+                ),
+              ),
+              ListItem(
+                title: FormRowTextField(
                   controller: _url,
-                  hintText: 'https://plan.zzyo.top',
+                  hintText: appLocalizations.storePanelUrl,
                   keyboardType: TextInputType.url,
                   autocorrect: false,
                   enableSuggestions: false,

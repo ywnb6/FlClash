@@ -1177,5 +1177,6 @@
   "storeFillEmail": "이메일을 먼저 입력하세요",
   "storeFillCode": "인증 코드를 입력하세요",
   "storeEmailNotAllowed": "이 이메일 도메인은 사용할 수 없습니다",
-  "storeFillInvite": "초대 코드를 입력하세요"
+  "storeFillInvite": "초대 코드를 입력하세요",
+  "storeInviteCodeRequired": "초대 코드(필수)"
 }

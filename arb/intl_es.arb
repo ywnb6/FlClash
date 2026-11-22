@@ -1177,5 +1177,6 @@
   "storeFillEmail": "Introduce primero el correo",
   "storeFillCode": "Introduce el código",
   "storeEmailNotAllowed": "Este dominio no se acepta",
-  "storeFillInvite": "Introduce el código de invitación"
+  "storeFillInvite": "Introduce el código de invitación",
+  "storeInviteCodeRequired": "Código de invitación (obligatorio)"
 }
