@@ -93,6 +93,34 @@ jobs:
       - name: Analyze
         run: flutter analyze --no-fatal-infos || true
 
+      # The tag this run publishes is decided before packaging, so the version
+      # inside the APK matches the release the update check compares against.
+      - name: Decide the release version
+        id: release_version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          version=$(grep -m1 '^version:' pubspec.yaml | sed 's/version: *//' | cut -d+ -f1)
+          base=$(echo "$version" | cut -d. -f1,2)
+          patch=$(echo "$version" | cut -d. -f3)
+          highest=$(gh release list --limit 200 --json tagName \
+            --jq '.[].tagName' 2>/dev/null | grep -E "^v${base}\." \
+            | sed "s/^v${base}\.//" | sort -n | tail -1 || true)
+          candidate=$(( ${highest:-0} > patch ? ${highest:-0} : patch ))
+          next=$(( candidate + 1 ))
+          echo "version=${base}.${next}" >> "$GITHUB_OUTPUT"
+          echo "code=$(date +%Y%m%d%H)" >> "$GITHUB_OUTPUT"
+
+      - name: Stamp the version into the build
+        env:
+          RELEASE_VERSION: ${{ steps.release_version.outputs.version }}
+          RELEASE_CODE: ${{ steps.release_version.outputs.code }}
+        run: |
+          set -euo pipefail
+          sed -i "s/^version: .*/version: ${RELEASE_VERSION}+${RELEASE_CODE}/" pubspec.yaml
+          grep -m1 '^version:' pubspec.yaml
+
       - name: Package APK
         env:
           ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
@@ -127,27 +155,20 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ARCH_INPUT: ${{ github.event.inputs.arch || 'arm64' }}
+          RELEASE_VERSION: ${{ steps.release_version.outputs.version }}
         run: |
           set -euo pipefail
-          version=$(grep -m1 '^version:' pubspec.yaml | sed 's/version: *//' | cut -d+ -f1)
+          tag="v${RELEASE_VERSION}"
           short=$(git rev-parse --short=7 HEAD)
-          # Every build gets its own patch tag, so an installed build always sees
-          # a higher version and offers the update.
-          base=$(echo "$version" | cut -d. -f1,2)
-          patch=$(echo "$version" | cut -d. -f3)
-          existing=$(gh release list --limit 200 --json tagName --jq '.[].tagName' | grep -E "^v${base}\." | sed "s/^v${base}\.//" | sort -n | tail -1)
-          next=${existing:-$patch}
-          if [ "$next" -gt "$patch" ]; then tag_version="${base}.$((next+1))"; else tag_version="${base}.$((patch+1))"; fi
-          tag="v${tag_version}"
           echo "publishing $tag from $short"
           apk=$(ls dist/*.apk | head -1)
-          name="FlClash-${tag_version}-android-${ARCH_INPUT}.apk"
+          name="FlClash-${RELEASE_VERSION}-android-${ARCH_INPUT}.apk"
           cp "$apk" "/tmp/$name"
-          sha256sum "/tmp/$name" | sed "s#/tmp/##" > "/tmp/FlClash-${tag_version}-SHA256SUMS"
+          sha256sum "/tmp/$name" | sed "s#/tmp/##" > "/tmp/FlClash-${RELEASE_VERSION}-SHA256SUMS"
           gh release create "$tag" \
-            --title "FlClash 商店版 ${tag_version}" \
+            --title "FlClash 商店版 ${RELEASE_VERSION}" \
             --notes "构建 ${short}"$'\n\n'"- 商店：登录 / 套餐 / 购买 / 链接导入"$'\n'"- 面板：易挽机场"$'\n'"- 局域网代理默认开启" \
-            "/tmp/$name" "/tmp/FlClash-${tag_version}-SHA256SUMS"
+            "/tmp/$name" "/tmp/FlClash-${RELEASE_VERSION}-SHA256SUMS"
           echo "released $tag"
 
       - name: Summary
