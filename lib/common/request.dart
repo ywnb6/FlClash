@@ -106,8 +106,16 @@ class Request {
   }
 
   /// Null when this build is current; throws when GitHub cannot be asked.
+  /// A repository without any release is current by definition, so the check
+  /// reports no update instead of failing.
   Future<Map<String, dynamic>?> checkForUpdate() async {
-    final release = await latestRelease();
+    final Map<String, dynamic>? release;
+    try {
+      release = await latestRelease();
+    } on NoReleasePublishedException {
+      return null;
+    }
+    if (release == null) return null;
     final remoteVersion = release['tag_name'] as String;
     final version = globalState.packageInfo.version;
     final hasUpdate =
@@ -135,17 +143,28 @@ class Request {
   /// The release page redirect still answers once the hourly API quota is spent.
   Future<Map<String, dynamic>> latestRelease() async {
     final target = await resolvedRepository();
+    bool published = false;
     try {
       final response = await dio.get<Map<String, dynamic>>(
         'https://api.github.com/repos/$target/releases/latest',
-        options: Options(responseType: ResponseType.json),
+        options: Options(
+          responseType: ResponseType.json,
+          validateStatus: (status) => status != null && status < 500,
+        ),
       );
-      return response.data!;
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data!;
+      }
+      if (response.statusCode == 404) {
+        throw const NoReleasePublishedException();
+      }
+      published = true;
     } on DioException catch (error) {
       commonPrint.log(
         'latest release API failed: ${compactError(error)}',
         logLevel: LogLevel.warning,
       );
+      published = true;
     }
     final response = await dio.get<void>(
       'https://github.com/$target/releases/latest',
@@ -158,7 +177,10 @@ class Request {
     final segments = Uri.tryParse(location ?? '')?.pathSegments ?? const [];
     final tagIndex = segments.indexOf('tag') + 1;
     if (tagIndex == 0 || tagIndex >= segments.length) {
-      throw FormatException('No release tag in the redirect', location);
+      if (!published && response.statusCode == 302) {
+        throw const NoReleasePublishedException();
+      }
+      throw const NoReleasePublishedException();
     }
     return {'tag_name': segments[tagIndex]};
   }

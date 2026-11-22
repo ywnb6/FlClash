@@ -22,6 +22,15 @@ final class SystemDownloadException implements Exception {
 }
 
 /// The release lacks [name], or its checksum file does not list it.
+/// The repository exists but carries no published release yet, so there is
+/// nothing to update to and the check has nothing to report.
+final class NoReleasePublishedException implements Exception {
+  const NoReleasePublishedException();
+
+  @override
+  String toString() => 'NoReleasePublishedException';
+}
+
 final class ReleaseFileMissingException implements Exception {
   final String name;
 
