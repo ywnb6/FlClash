@@ -1084,7 +1084,7 @@ class _SettingsSheetState extends State<_SettingsSheet> {
                 title: Text(appLocalizations.storeUserAgent),
                 subtitle: FormRowTextField(
                   controller: _ua,
-                  hintText: defaultUserAgent,
+                  hintText: XboardClient.defaultUserAgent,
                   autocorrect: false,
                   enableSuggestions: false,
                 ),
