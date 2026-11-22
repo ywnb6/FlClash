@@ -1192,5 +1192,7 @@
   "storePaid": "支付成功",
   "storePaidTip": "套餐已开通，可直接导入订阅",
   "storeOrders": "订单记录",
-  "storeCancelOrder": "取消订单"
+  "storeCancelOrder": "取消订单",
+  "storeOrderCancelled": "订单已取消",
+  "storeNoOrders": "暂无订单"
 }

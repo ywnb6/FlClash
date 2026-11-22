@@ -4,6 +4,7 @@ import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/store/xboard_models.dart';
 import 'package:fl_clash/store/xboard_session.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
+import 'package:fl_clash/ui/qr_code.dart';
 import 'package:fl_clash/ui/nested_sheet.dart';
 import 'package:fl_clash/ui/scaffold/scaffold.dart';
 import 'package:fl_clash/widgets/widgets.dart';
@@ -145,6 +146,10 @@ class _PaymentSheetState extends State<_PaymentSheet> {
               ),
             ),
             const SizedBox(height: 8),
+            Center(
+              child: QrCodeView(data: payload, size: 220),
+            ),
+            const SizedBox(height: 16),
             if (payload.startsWith('http'))
               FilledButton(
                 onPressed: _openBrowser,

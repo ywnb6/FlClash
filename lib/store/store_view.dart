@@ -7,6 +7,7 @@ import 'package:fl_clash/providers/action.dart';
 import 'package:fl_clash/store/xboard_client.dart';
 import 'package:fl_clash/store/xboard_models.dart';
 import 'package:fl_clash/store/store_link_sheet.dart';
+import 'package:fl_clash/store/store_orders_sheet.dart';
 import 'package:fl_clash/store/store_payment_sheet.dart';
 import 'package:fl_clash/store/xboard_session.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
@@ -113,6 +114,18 @@ class _StoreViewState extends ConsumerState<StoreView> {
     dialogs.showBanner(currentAppLocalizations.storeSignedOut);
   }
 
+  Future<void> _openOrders() async {
+    final session = _session;
+    if (session == null) return;
+    if (!session.isSignedIn) {
+      await _openSignIn();
+      return;
+    }
+    await showStoreOrdersSheet(context, session: session);
+    if (!mounted) return;
+    await _refresh(force: true);
+  }
+
   Future<void> _openSettings() async {
     final session = _session;
     if (session == null) return;
@@ -216,6 +229,11 @@ class _StoreViewState extends ConsumerState<StoreView> {
     return Scaffold(
       title: PageLabel.store.label,
       iconActions: [
+        IconButtonData(
+          glyph: AppGlyphs.listAdd,
+          tooltip: context.appLocalizations.storeOrders,
+          onPressed: _openOrders,
+        ),
         IconButtonData(
           glyph: AppGlyphs.settings,
           tooltip: context.appLocalizations.storeSettings,

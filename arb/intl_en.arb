@@ -1307,5 +1307,7 @@
   "storePaid": "Payment complete",
   "storePaidTip": "The plan is active, import the subscription",
   "storeOrders": "Orders",
-  "storeCancelOrder": "Cancel order"
+  "storeCancelOrder": "Cancel order",
+  "storeOrderCancelled": "Order cancelled",
+  "storeNoOrders": "No orders yet"
 }

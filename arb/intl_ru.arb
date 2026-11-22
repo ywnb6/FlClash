@@ -1192,5 +1192,7 @@
   "storePaid": "Оплата прошла",
   "storePaidTip": "Тариф активирован",
   "storeOrders": "Заказы",
-  "storeCancelOrder": "Отменить заказ"
+  "storeCancelOrder": "Отменить заказ",
+  "storeOrderCancelled": "Заказ отменён",
+  "storeNoOrders": "Заказов нет"
 }

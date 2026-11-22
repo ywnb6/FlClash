@@ -1192,5 +1192,7 @@
   "storePaid": "결제 완료",
   "storePaidTip": "요금제가 활성화되었습니다",
   "storeOrders": "주문 내역",
-  "storeCancelOrder": "주문 취소"
+  "storeCancelOrder": "주문 취소",
+  "storeOrderCancelled": "주문이 취소되었습니다",
+  "storeNoOrders": "주문 내역이 없습니다"
 }

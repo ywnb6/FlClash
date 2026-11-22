@@ -1192,5 +1192,7 @@
   "storePaid": "Paiement effectué",
   "storePaidTip": "L'offre est active",
   "storeOrders": "Commandes",
-  "storeCancelOrder": "Annuler la commande"
+  "storeCancelOrder": "Annuler la commande",
+  "storeOrderCancelled": "Commande annulée",
+  "storeNoOrders": "Aucune commande"
 }

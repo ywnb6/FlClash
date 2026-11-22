@@ -1192,5 +1192,7 @@
   "storePaid": "支払い完了",
   "storePaidTip": "プランが有効になりました",
   "storeOrders": "注文履歴",
-  "storeCancelOrder": "注文をキャンセル"
+  "storeCancelOrder": "注文をキャンセル",
+  "storeOrderCancelled": "注文をキャンセルしました",
+  "storeNoOrders": "注文はありません"
 }

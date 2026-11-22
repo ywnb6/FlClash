@@ -103,6 +103,10 @@ class XboardClient {
       return decoded['data'];
     }
     final message = decoded['message'];
+    // The payment endpoint answers with `{type, data}` and no status field.
+    if (message == null && decoded.containsKey('type')) {
+      return decoded;
+    }
     throw XboardException(
       message is String && message.isNotEmpty ? message : 'HTTP $status',
       statusCode: status,
