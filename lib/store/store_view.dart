@@ -1008,12 +1008,6 @@ class _SettingsSheetState extends State<_SettingsSheet> {
             items: [
               ListItem(
                 title: Text(appLocalizations.storePanelUrl),
-                subtitle: Text(
-                  widget.session.siteName,
-                  style: AppTextStyle.footnote
-                      .of(context)
-                      .copyWith(color: context.colorScheme.onSurfaceVariant),
-                ),
                 trailing: FormRowTextField(
                   controller: _url,
                   hintText: appLocalizations.storePanelUrl,
