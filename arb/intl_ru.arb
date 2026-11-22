@@ -1170,5 +1170,10 @@
   "storeSave": "Сохранить",
   "storeSettingsSaved": "Настройки сохранены",
   "storeSignedOut": "Вы вышли",
-  "storeRefresh": "Обновить"
+  "storeRefresh": "Обновить",
+  "storeEmailCode": "Код из письма",
+  "storeSendCode": "Отправить код",
+  "storeCodeSent": "Код отправлен, проверьте почту",
+  "storeFillEmail": "Сначала введите почту",
+  "storeFillCode": "Введите код из письма"
 }

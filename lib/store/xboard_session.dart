@@ -18,6 +18,7 @@ class XboardSession {
   XboardSession(this._preferences);
 
   String _baseUrl = XboardClient.defaultBaseUrl;
+  String _siteName = '';
   String? _token;
   XboardUserInfo? _userInfo;
   List<XboardPlan> _plans = const [];
@@ -31,6 +32,9 @@ class XboardSession {
   XboardClient get client => _client;
 
   String get baseUrl => _baseUrl;
+
+  /// The panel's own name, falling back to its host.
+  String get siteName => _siteName.isNotEmpty ? _siteName : _baseUrl;
 
   String? get token => _token;
 
@@ -59,6 +63,13 @@ class XboardSession {
     _notify();
   }
 
+  Future<void> loadSiteName({bool force = false}) async {
+    if (_siteName.isNotEmpty && !force) return;
+    _siteName = await _client.fetchSiteName();
+    await loadSiteName();
+    _notify();
+  }
+
   Future<void> setBaseUrl(String value) async {
     var url = value.trim();
     if (url.isEmpty) return;
@@ -69,6 +80,7 @@ class XboardSession {
       url = url.substring(0, url.length - 1);
     }
     _baseUrl = url;
+    _siteName = '';
     await _preferences?.setString(_baseUrlKey, url);
     _plans = const [];
     _notify();
@@ -173,6 +185,10 @@ class XboardSession {
 
   Future<String> pay({required String tradeNo, required String method}) {
     return _run(() => _client.checkout(tradeNo: tradeNo, method: method));
+  }
+
+  Future<void> sendEmailVerify(String email) async {
+    await _run(() => _client.sendEmailVerify(email: email));
   }
 
   Future<void> signOut() async {

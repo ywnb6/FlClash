@@ -125,6 +125,28 @@ class XboardClient {
     }
   }
 
+  /// The panel exposes no site name over JSON, so the page title stands in
+  /// for it; an unreachable or unknown name falls back to the host.
+  Future<String> fetchSiteName() async {
+    try {
+      final response = await _dio.get<String>(
+        '/',
+        options: Options(
+          headers: {'User-Agent': _userAgent},
+          responseType: ResponseType.plain,
+        ),
+      );
+      final body = response.data ?? '';
+      final title = RegExp(
+        r'title:\s*[\x27"]([^\x27"]+)[\x27"]',
+      ).firstMatch(body);
+      final tag = RegExp(r'<title>([^<]+)</title>').firstMatch(body);
+      final name = (title?.group(1) ?? tag?.group(1) ?? '').trim();
+      if (name.isNotEmpty) return name;
+    } catch (_) {}
+    return Uri.tryParse(_baseUrl)?.host ?? _baseUrl;
+  }
+
   Future<Map<String, Object?>> commonConfig() async {
     final data = await _request('/guest/comm/config', auth: false);
     return data is Map ? data.cast<String, Object?>() : <String, Object?>{};
@@ -188,6 +210,15 @@ class XboardClient {
     final token = _readAuthData(data);
     _token = token;
     return token;
+  }
+
+  Future<void> sendEmailVerify({required String email}) async {
+    await _request(
+      '/passport/comm/sendEmailVerify',
+      method: 'POST',
+      data: {'email': email.trim()},
+      auth: false,
+    );
   }
 
   Future<void> forget({required String email}) async {

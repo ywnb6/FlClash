@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/features/features.dart';
@@ -292,7 +294,7 @@ class _AccountCard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              session?.baseUrl ?? XboardClient.defaultBaseUrl,
+              session?.siteName ?? XboardClient.defaultBaseUrl,
               style: AppTextStyle.footnote
                   .of(context)
                   .copyWith(color: colors.onSurfaceVariant),
@@ -494,16 +496,66 @@ class _SignInSheetState extends State<_SignInSheet> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _invite = TextEditingController();
+  final _code = TextEditingController();
   bool _register = false;
   bool _busy = false;
+  bool _sendingCode = false;
+  int _cooldown = 0;
+  Timer? _ticker;
   String? _error;
 
   @override
   void dispose() {
+    _ticker?.cancel();
     _email.dispose();
     _password.dispose();
     _invite.dispose();
+    _code.dispose();
     super.dispose();
+  }
+
+  void _startCooldown() {
+    _ticker?.cancel();
+    setState(() => _cooldown = 60);
+    _ticker = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        _cooldown -= 1;
+        if (_cooldown <= 0) timer.cancel();
+      });
+    });
+  }
+
+  Future<void> _sendCode() async {
+    final appLocalizations = context.appLocalizations;
+    final email = _email.text.trim();
+    if (email.isEmpty) {
+      setState(() => _error = appLocalizations.storeFillEmail);
+      return;
+    }
+    setState(() {
+      _sendingCode = true;
+      _error = null;
+    });
+    try {
+      await widget.session.sendEmailVerify(email);
+      if (!mounted) return;
+      setState(() => _sendingCode = false);
+      _startCooldown();
+      dialogs.showBanner(
+        appLocalizations.storeCodeSent,
+        level: BannerLevel.success,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _sendingCode = false;
+        _error = _humanError(error);
+      });
+    }
   }
 
   Future<void> _submit() async {
@@ -520,10 +572,18 @@ class _SignInSheetState extends State<_SignInSheet> {
     });
     try {
       if (_register) {
+        if (_code.text.trim().isEmpty) {
+          setState(() {
+            _busy = false;
+            _error = appLocalizations.storeFillCode;
+          });
+          return;
+        }
         await widget.session.register(
           email: email,
           password: password,
           inviteCode: _invite.text,
+          emailCode: _code.text,
         );
       } else {
         await widget.session.login(email: email, password: password);
@@ -556,7 +616,7 @@ class _SignInSheetState extends State<_SignInSheet> {
         ),
         children: [
           generateSection(
-            title: widget.session.baseUrl,
+            title: widget.session.siteName,
             items: [
               ListItem(
                 title: FormRowTextField(
@@ -577,7 +637,28 @@ class _SignInSheetState extends State<_SignInSheet> {
                   onFieldSubmitted: (_) => _submit(),
                 ),
               ),
-              if (_register)
+              if (_register) ...[
+                ListItem(
+                  title: FormRowTextField(
+                    controller: _code,
+                    hintText: appLocalizations.storeEmailCode,
+                    keyboardType: TextInputType.number,
+                    autocorrect: false,
+                    enableSuggestions: false,
+                  ),
+                  trailing: TextButton(
+                    onPressed: _sendingCode || _cooldown > 0
+                        ? null
+                        : _sendCode,
+                    child: _sendingCode
+                        ? const ActivityIndicator(size: 14)
+                        : Text(
+                            _cooldown > 0
+                                ? '${_cooldown}s'
+                                : appLocalizations.storeSendCode,
+                          ),
+                  ),
+                ),
                 ListItem(
                   title: FormRowTextField(
                     controller: _invite,
@@ -586,6 +667,7 @@ class _SignInSheetState extends State<_SignInSheet> {
                     enableSuggestions: false,
                   ),
                 ),
+              ],
             ],
           ),
           if (_error != null)

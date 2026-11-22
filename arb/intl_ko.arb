@@ -1170,5 +1170,10 @@
   "storeSave": "저장",
   "storeSettingsSaved": "설정이 저장되었습니다",
   "storeSignedOut": "로그아웃되었습니다",
-  "storeRefresh": "새로고침"
+  "storeRefresh": "새로고침",
+  "storeEmailCode": "이메일 인증 코드",
+  "storeSendCode": "코드 전송",
+  "storeCodeSent": "인증 코드를 보냈습니다",
+  "storeFillEmail": "이메일을 먼저 입력하세요",
+  "storeFillCode": "인증 코드를 입력하세요"
 }

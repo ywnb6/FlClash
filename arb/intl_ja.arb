@@ -1170,5 +1170,10 @@
   "storeSave": "保存",
   "storeSettingsSaved": "設定を保存しました",
   "storeSignedOut": "サインアウトしました",
-  "storeRefresh": "更新"
+  "storeRefresh": "更新",
+  "storeEmailCode": "メール認証コード",
+  "storeSendCode": "コードを送信",
+  "storeCodeSent": "コードを送信しました",
+  "storeFillEmail": "先にメールを入力してください",
+  "storeFillCode": "認証コードを入力してください"
 }

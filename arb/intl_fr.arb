@@ -1170,5 +1170,10 @@
   "storeSave": "Enregistrer",
   "storeSettingsSaved": "Réglages enregistrés",
   "storeSignedOut": "Déconnecté",
-  "storeRefresh": "Actualiser"
+  "storeRefresh": "Actualiser",
+  "storeEmailCode": "Code e-mail",
+  "storeSendCode": "Envoyer",
+  "storeCodeSent": "Code envoyé, vérifiez votre boîte",
+  "storeFillEmail": "Saisissez d'abord l'e-mail",
+  "storeFillCode": "Saisissez le code"
 }

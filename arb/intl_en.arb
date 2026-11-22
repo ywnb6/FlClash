@@ -1285,5 +1285,10 @@
   "storeSave": "Save",
   "storeSettingsSaved": "Settings saved",
   "storeSignedOut": "Signed out",
-  "storeRefresh": "Refresh"
+  "storeRefresh": "Refresh",
+  "storeEmailCode": "Email code",
+  "storeSendCode": "Send code",
+  "storeCodeSent": "Code sent, check your inbox",
+  "storeFillEmail": "Enter your email first",
+  "storeFillCode": "Enter the email code"
 }
