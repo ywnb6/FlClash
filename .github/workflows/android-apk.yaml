@@ -17,6 +17,11 @@ on:
         required: true
         default: false
         type: boolean
+      notes:
+        description: 'Release notes: the changes in this build, one line each (leave empty to use the last commit subject)'
+        required: false
+        default: ''
+        type: string
   push:
     branches:
       - 'main'
@@ -122,6 +127,7 @@ jobs:
       - name: Stamp the version into the build
         env:
           RELEASE_VERSION: ${{ steps.release_version.outputs.version }}
+          NOTES_INPUT: ${{ github.event.inputs.notes }}
           RELEASE_CODE: ${{ steps.release_version.outputs.code }}
         run: |
           set -euo pipefail
@@ -163,6 +169,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ARCH_INPUT: ${{ github.event.inputs.arch || 'arm64' }}
           RELEASE_VERSION: ${{ steps.release_version.outputs.version }}
+          NOTES_INPUT: ${{ github.event.inputs.notes }}
         run: |
           set -euo pipefail
           tag="v${RELEASE_VERSION}"
@@ -175,9 +182,14 @@ jobs:
           name="FlClash-${RELEASE_VERSION}-android-${ARCH_INPUT}.apk"
           cp "$apk" "/tmp/$name"
           sha256sum "/tmp/$name" | sed "s#/tmp/##" > "/tmp/FlClash-${RELEASE_VERSION}-SHA256SUMS"
+          notes="${NOTES_INPUT:-}"
+          if [ -z "$notes" ]; then
+            notes=$(git log -1 --pretty=%s)
+          fi
+          printf '%s\n' "$notes" > /tmp/notes.md
           gh release create "$tag" \
             --title "FlClash 商店版 ${RELEASE_VERSION}" \
-            --notes "构建 ${short}"$'\n\n'"- 商店：登录 / 套餐 / 购买 / 链接导入"$'\n'"- 面板：易挽机场"$'\n'"- 局域网代理默认开启" \
+            --notes-file /tmp/notes.md \
             "/tmp/$name" "/tmp/FlClash-${RELEASE_VERSION}-SHA256SUMS"
           echo "released $tag"
 
