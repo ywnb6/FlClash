@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/store/xboard_models.dart';
+import 'package:fl_clash/state.dart';
 import 'package:fl_clash/store/xboard_parse.dart';
 
 class XboardException implements Exception {
@@ -24,6 +25,10 @@ class XboardClient {
   /// Shown wherever the app would otherwise print the address; the panel's own
   /// page title overrides it once fetched.
   static const defaultSiteName = '易挽机场';
+
+  /// What the panel sees as the client; it decides the config format a
+  /// subscription is served in.
+  static String get defaultUserAgent => 'FlClash/${globalState.packageInfo.version}';
 
   static String _normalize(String value) {
     var url = value.trim();
@@ -52,15 +57,16 @@ class XboardClient {
   );
 
   String? _token;
-  String _userAgent = 'FlClash/0.9.4';
+  String? _userAgentOverride;
+
+  String get _userAgent => _userAgentOverride ?? defaultUserAgent;
 
   String? get token => _token;
 
   set token(String? value) => _token = value;
 
-  set userAgent(String value) => _userAgent = value.trim().isEmpty
-      ? _userAgent
-      : value.trim();
+  set userAgent(String value) =>
+      _userAgentOverride = value.trim().isEmpty ? null : value.trim();
 
   Future<dynamic> _request(
     String path, {
