@@ -1178,5 +1178,9 @@
   "storeFillCode": "認証コードを入力してください",
   "storeEmailNotAllowed": "このメールドメインは使用できません",
   "storeFillInvite": "招待コードを入力してください",
-  "storeInviteCodeRequired": "招待コード（必須）"
+  "storeInviteCodeRequired": "招待コード（必須）",
+  "storeSubscribeLink": "購読リンク",
+  "storeLinkTip": "リンクは編集できます",
+  "storeCopyLink": "リンクをコピー",
+  "storeLinkCopied": "コピーしました"
 }

@@ -1178,5 +1178,9 @@
   "storeFillCode": "Introduce el código",
   "storeEmailNotAllowed": "Este dominio no se acepta",
   "storeFillInvite": "Introduce el código de invitación",
-  "storeInviteCodeRequired": "Código de invitación (obligatorio)"
+  "storeInviteCodeRequired": "Código de invitación (obligatorio)",
+  "storeSubscribeLink": "Enlace de suscripción",
+  "storeLinkTip": "El enlace es editable",
+  "storeCopyLink": "Copiar enlace",
+  "storeLinkCopied": "Enlace copiado"
 }

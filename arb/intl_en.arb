@@ -1293,5 +1293,9 @@
   "storeFillCode": "Enter the email code",
   "storeEmailNotAllowed": "This email domain is not accepted",
   "storeFillInvite": "Enter the invite code",
-  "storeInviteCodeRequired": "Invite code (required)"
+  "storeInviteCodeRequired": "Invite code (required)",
+  "storeSubscribeLink": "Subscription link",
+  "storeLinkTip": "Edit the link or replace it with one you saved",
+  "storeCopyLink": "Copy link",
+  "storeLinkCopied": "Link copied"
 }

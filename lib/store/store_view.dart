@@ -6,6 +6,7 @@ import 'package:fl_clash/features/features.dart';
 import 'package:fl_clash/providers/action.dart';
 import 'package:fl_clash/store/xboard_client.dart';
 import 'package:fl_clash/store/xboard_models.dart';
+import 'package:fl_clash/store/store_link_sheet.dart';
 import 'package:fl_clash/store/xboard_session.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/ui/nested_sheet.dart';
@@ -126,7 +127,23 @@ class _StoreViewState extends ConsumerState<StoreView> {
       await _openSignIn();
       return;
     }
-    final url = session.subscribeUrl;
+    setState(() => _loading = true);
+    String url;
+    try {
+      await session.refreshUserInfo();
+      if (!mounted) return;
+      url = session.subscribeUrl;
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+      dialogs.showBanner(
+        _humanError(error),
+        level: BannerLevel.error,
+      );
+      return;
+    }
+    if (!mounted) return;
+    setState(() => _loading = false);
     if (url.isEmpty) {
       dialogs.showBanner(
         currentAppLocalizations.storeNoSubscription,
@@ -134,9 +151,19 @@ class _StoreViewState extends ConsumerState<StoreView> {
       );
       return;
     }
+    final link = await showStoreLinkSheet(
+      context,
+      url: url,
+      siteName: session.siteName,
+    );
+    if (!mounted || link == null || link.isEmpty) return;
     final planName = session.userInfo?.planName?.trim();
-    final label = planName == null || planName.isEmpty ? 'Xboard' : planName;
-    await ref.read(profilesActionProvider.notifier).addProfileFromLink(url, label: label);
+    final label = planName == null || planName.isEmpty
+        ? session.siteName
+        : planName;
+    await ref
+        .read(profilesActionProvider.notifier)
+        .addProfileFromLink(link, label: label);
     if (!mounted) return;
     dialogs.showBanner(
       currentAppLocalizations.storeImported,

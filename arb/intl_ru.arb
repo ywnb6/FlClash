@@ -1178,5 +1178,9 @@
   "storeFillCode": "Введите код из письма",
   "storeEmailNotAllowed": "Домен почты не поддерживается",
   "storeFillInvite": "Введите код приглашения",
-  "storeInviteCodeRequired": "Код приглашения (обязательно)"
+  "storeInviteCodeRequired": "Код приглашения (обязательно)",
+  "storeSubscribeLink": "Ссылка подписки",
+  "storeLinkTip": "Ссылку можно изменить",
+  "storeCopyLink": "Копировать",
+  "storeLinkCopied": "Ссылка скопирована"
 }
