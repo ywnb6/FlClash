@@ -14,7 +14,10 @@ class Contributor {
   final String avatar;
   final String name;
 
-  const Contributor({required this.avatar, required this.name});
+  /// Null keeps the app icon credit every earlier entry carries.
+  final String? role;
+
+  const Contributor({required this.avatar, required this.name, this.role});
 }
 
 class AboutView extends ConsumerWidget {
@@ -23,6 +26,11 @@ class AboutView extends ConsumerWidget {
   static const _contributors = [
     Contributor(avatar: 'assets/images/avatar/june2.jpg', name: 'June2'),
     Contributor(avatar: 'assets/images/avatar/arue.jpg', name: 'Arue'),
+    Contributor(
+      avatar: 'assets/images/avatar/yiwan.png',
+      name: '易挽',
+      role: 'storeDesign',
+    ),
   ];
 
   Future<void> _checkUpdate(BuildContext context, WidgetRef ref) async {
@@ -103,8 +111,8 @@ class AboutView extends ConsumerWidget {
               _buildLinkItem(
                 glyph: AppGlyphs.send,
                 title: 'Telegram',
-                url: 'https://t.me/FlClash',
-                label: 't.me/FlClash',
+                url: 'https://t.me/YiWanJC',
+                label: 't.me/YiWanJC',
               ),
             ],
           ),
@@ -129,7 +137,11 @@ class AboutView extends ConsumerWidget {
                     ),
                   ),
                   title: Text(contributor.name),
-                  subtitle: Text(appLocalizations.appIconDesign),
+                  subtitle: Text(
+                    contributor.role == 'storeDesign'
+                        ? appLocalizations.storeDesign
+                        : appLocalizations.appIconDesign,
+                  ),
                 ),
             ],
           ),

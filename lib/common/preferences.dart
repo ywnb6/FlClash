@@ -36,6 +36,21 @@ class Preferences {
     return _instance!;
   }
 
+  Future<String?> getStringValue(String key) async {
+    final store = await _store.value;
+    return store?.getString(key);
+  }
+
+  Future<void> setStringValue(String key, String value) async {
+    final store = await _store.value;
+    await store?.setString(key, value);
+  }
+
+  Future<void> removeValue(String key) async {
+    final store = await _store.value;
+    await store?.remove(key);
+  }
+
   Future<int> getVersion() async {
     final preferences = await _store.value;
     return preferences?.getInt('version') ?? 0;

@@ -1297,5 +1297,7 @@
   "storeSubscribeLink": "Subscription link",
   "storeLinkTip": "Edit the link or replace it with one you saved",
   "storeCopyLink": "Copy link",
-  "storeLinkCopied": "Link copied"
+  "storeLinkCopied": "Link copied",
+  "storeDesign": "App store design",
+  "storeUpdateSource": "Update source"
 }

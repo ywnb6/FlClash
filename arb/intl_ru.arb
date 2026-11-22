@@ -1182,5 +1182,7 @@
   "storeSubscribeLink": "Ссылка подписки",
   "storeLinkTip": "Ссылку можно изменить",
   "storeCopyLink": "Копировать",
-  "storeLinkCopied": "Ссылка скопирована"
+  "storeLinkCopied": "Ссылка скопирована",
+  "storeDesign": "Дизайн магазина",
+  "storeUpdateSource": "Источник обновлений"
 }

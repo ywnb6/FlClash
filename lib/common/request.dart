@@ -115,11 +115,29 @@ class Request {
     return hasUpdate ? release : null;
   }
 
+  /// Points the check at another release page; an empty value restores
+  /// [repository].
+  Future<void> setCustomRepository(String value) async {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) {
+      await preferences.removeValue(customRepositoryKey);
+      return;
+    }
+    await preferences.setStringValue(customRepositoryKey, trimmed);
+  }
+
+  Future<String> resolvedRepository() async {
+    final custom = await preferences.getStringValue(customRepositoryKey);
+    final value = custom?.trim() ?? '';
+    return value.isEmpty ? repository : value;
+  }
+
   /// The release page redirect still answers once the hourly API quota is spent.
   Future<Map<String, dynamic>> latestRelease() async {
+    final target = await resolvedRepository();
     try {
       final response = await dio.get<Map<String, dynamic>>(
-        'https://api.github.com/repos/$repository/releases/latest',
+        'https://api.github.com/repos/$target/releases/latest',
         options: Options(responseType: ResponseType.json),
       );
       return response.data!;
@@ -130,7 +148,7 @@ class Request {
       );
     }
     final response = await dio.get<void>(
-      'https://github.com/$repository/releases/latest',
+      'https://github.com/$target/releases/latest',
       options: Options(
         followRedirects: false,
         validateStatus: (status) => status != null && status < 400,

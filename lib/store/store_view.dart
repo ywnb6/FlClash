@@ -999,17 +999,36 @@ class _SettingsSheet extends StatefulWidget {
 class _SettingsSheetState extends State<_SettingsSheet> {
   late final _url = TextEditingController(text: widget.session.baseUrl);
   late final _ua = TextEditingController(text: widget.session.userAgent);
+  final _repo = TextEditingController();
+  String _currentRepo = repository;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRepo();
+  }
+
+  Future<void> _loadRepo() async {
+    final value = await request.resolvedRepository();
+    if (!mounted) return;
+    setState(() {
+      _currentRepo = value;
+      _repo.text = value;
+    });
+  }
 
   @override
   void dispose() {
     _url.dispose();
     _ua.dispose();
+    _repo.dispose();
     super.dispose();
   }
 
   Future<void> _save() async {
     await widget.session.setBaseUrl(_url.text);
     await widget.session.setUserAgent(_ua.text);
+    await request.setCustomRepository(_repo.text);
     if (!mounted) return;
     Navigator.of(context).pop();
     dialogs.showBanner(
@@ -1048,6 +1067,15 @@ class _SettingsSheetState extends State<_SettingsSheet> {
                 subtitle: FormRowTextField(
                   controller: _ua,
                   hintText: 'FlClash/0.9.4',
+                  autocorrect: false,
+                  enableSuggestions: false,
+                ),
+              ),
+              ListItem(
+                title: Text(appLocalizations.storeUpdateSource),
+                subtitle: FormRowTextField(
+                  controller: _repo,
+                  hintText: 'owner/repo',
                   autocorrect: false,
                   enableSuggestions: false,
                 ),

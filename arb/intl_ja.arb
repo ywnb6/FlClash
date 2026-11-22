@@ -1182,5 +1182,7 @@
   "storeSubscribeLink": "購読リンク",
   "storeLinkTip": "リンクは編集できます",
   "storeCopyLink": "リンクをコピー",
-  "storeLinkCopied": "コピーしました"
+  "storeLinkCopied": "コピーしました",
+  "storeDesign": "アプリストアデザイン",
+  "storeUpdateSource": "更新元"
 }

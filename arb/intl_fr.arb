@@ -1182,5 +1182,7 @@
   "storeSubscribeLink": "Lien d'abonnement",
   "storeLinkTip": "Le lien est modifiable",
   "storeCopyLink": "Copier le lien",
-  "storeLinkCopied": "Lien copié"
+  "storeLinkCopied": "Lien copié",
+  "storeDesign": "Design de la boutique",
+  "storeUpdateSource": "Source des mises à jour"
 }
