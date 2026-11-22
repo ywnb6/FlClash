@@ -237,6 +237,14 @@ String formatBytes(int bytes) {
   return '${value.toStringAsFixed(digits)} ${units[unit]}';
 }
 
+/// A plan's `transfer_enable` is counted in GB, unlike the account's traffic
+/// fields, which are bytes.
+String formatPlanTraffic(int gb) {
+  if (gb <= 0) return '不限';
+  if (gb % 1024 == 0) return '${gb ~/ 1024} TB';
+  return '$gb GB';
+}
+
 String formatDate(DateTime? date) {
   if (date == null) return '-';
   String two(int value) => value.toString().padLeft(2, '0');
