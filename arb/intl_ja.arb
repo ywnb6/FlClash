@@ -1194,5 +1194,8 @@
   "storeOrders": "注文履歴",
   "storeCancelOrder": "注文をキャンセル",
   "storeOrderCancelled": "注文をキャンセルしました",
-  "storeNoOrders": "注文はありません"
+  "storeNoOrders": "注文はありません",
+  "tcpPing": "TCPing テスト",
+  "tcpPingOn": "TCPingに切り替えました",
+  "tcpPingOff": "HTTPテストに切り替えました"
 }

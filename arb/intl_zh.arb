@@ -1194,5 +1194,8 @@
   "storeOrders": "订单记录",
   "storeCancelOrder": "取消订单",
   "storeOrderCancelled": "订单已取消",
-  "storeNoOrders": "暂无订单"
+  "storeNoOrders": "暂无订单",
+  "tcpPing": "TCPing 测速",
+  "tcpPingOn": "已切换为 TCPing 测速",
+  "tcpPingOff": "已切换为 HTTP 测速"
 }

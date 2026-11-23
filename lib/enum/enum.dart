@@ -366,6 +366,7 @@ enum TunOverrideKey with OverrideKey {
 enum GeneralOverrideKey with OverrideKey {
   testUrl('test-url'),
   unifiedDelay('unified-delay'),
+  tcpPing('tcping'),
   tcpConcurrent('tcp-concurrent'),
   ipv6('ipv6'),
   geodataLoader('geodata-loader');

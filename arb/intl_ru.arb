@@ -1194,5 +1194,8 @@
   "storeOrders": "Заказы",
   "storeCancelOrder": "Отменить заказ",
   "storeOrderCancelled": "Заказ отменён",
-  "storeNoOrders": "Заказов нет"
+  "storeNoOrders": "Заказов нет",
+  "tcpPing": "TCPing",
+  "tcpPingOn": "Переключено на TCPing",
+  "tcpPingOff": "Переключено на HTTP"
 }

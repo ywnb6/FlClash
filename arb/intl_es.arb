@@ -1194,5 +1194,8 @@
   "storeOrders": "Pedidos",
   "storeCancelOrder": "Cancelar pedido",
   "storeOrderCancelled": "Pedido cancelado",
-  "storeNoOrders": "Sin pedidos"
+  "storeNoOrders": "Sin pedidos",
+  "tcpPing": "TCPing",
+  "tcpPingOn": "Cambiado a TCPing",
+  "tcpPingOff": "Cambiado a prueba HTTP"
 }

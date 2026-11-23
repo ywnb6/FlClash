@@ -1924,6 +1924,7 @@ const clashConfigSchema = YamlSchema.map({
   ]),
   'ipv6': _bool,
   'unified-delay': _bool,
+  'tcping': _bool,
   'tcp-concurrent': _bool,
   'find-process-mode': YamlSchema.scalar(['strict', 'always', 'off']),
   'global-ua': _str,

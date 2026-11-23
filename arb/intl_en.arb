@@ -1309,5 +1309,8 @@
   "storeOrders": "Orders",
   "storeCancelOrder": "Cancel order",
   "storeOrderCancelled": "Order cancelled",
-  "storeNoOrders": "No orders yet"
+  "storeNoOrders": "No orders yet",
+  "tcpPing": "TCPing delays",
+  "tcpPingOn": "Switched to TCPing",
+  "tcpPingOff": "Switched to HTTP test"
 }

@@ -1194,5 +1194,8 @@
   "storeOrders": "주문 내역",
   "storeCancelOrder": "주문 취소",
   "storeOrderCancelled": "주문이 취소되었습니다",
-  "storeNoOrders": "주문 내역이 없습니다"
+  "storeNoOrders": "주문 내역이 없습니다",
+  "tcpPing": "TCPing",
+  "tcpPingOn": "TCPing으로 전환됨",
+  "tcpPingOff": "HTTP 테스트로 전환됨"
 }
