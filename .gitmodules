@@ -1,6 +1,6 @@
 [submodule "core/Clash.Meta"]
 	path = core/Clash.Meta
-	url = https://ghfast.top/https://github.com/chen08209/Clash.Meta.git
+	url = https://github.com/ywnb6/Clash.Meta.git
 	branch = FlClash
 [submodule "plugins/prism_ui"]
 	path = plugins/prism_ui
