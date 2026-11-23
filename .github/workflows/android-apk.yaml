@@ -90,6 +90,11 @@ jobs:
           flutter pub get
           flutter gen-l10n
 
+      # The generated model code is never edited by hand, so the checkout is
+      # brought in line with the annotations before anything compiles against it.
+      - name: Generate model and provider code
+        run: dart run build_runner build --delete-conflicting-outputs
+
       - name: Fetch CA certificates
         shell: bash
         env:
