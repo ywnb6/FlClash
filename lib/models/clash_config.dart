@@ -2142,7 +2142,7 @@ abstract class PatchClashConfig with _$PatchClashConfig {
     @Default(Mode.rule) Mode mode,
     @Default(true) @JsonKey(name: 'allow-lan') bool allowLan,
     @Default(LogLevel.error) @JsonKey(name: 'log-level') LogLevel logLevel,
-    @Default(false) bool ipv6,
+    @Default(true) bool ipv6,
     @Default(FindProcessMode.strict)
     @JsonKey(
       name: 'find-process-mode',
