@@ -4,7 +4,6 @@ extension on GeneralOverrideKey {
   String label(AppLocalizations l) => switch (this) {
     GeneralOverrideKey.testUrl => l.testUrl,
     GeneralOverrideKey.unifiedDelay => l.unifiedDelay,
-    GeneralOverrideKey.tcpPing => l.tcpPing,
     GeneralOverrideKey.tcpConcurrent => l.tcpConcurrent,
     GeneralOverrideKey.ipv6 => 'IPv6',
     GeneralOverrideKey.geodataLoader => l.geodataLoader,
@@ -74,10 +73,6 @@ class _GeneralOverrideSpec
         GeneralOverrideKey.unifiedDelay => ToggleOverrideField(
           (config) => config.unifiedDelay,
           (config, value) => config.copyWith(unifiedDelay: value),
-        ),
-        GeneralOverrideKey.tcpPing => ToggleOverrideField(
-          (config) => config.tcpPing,
-          (config, value) => config.copyWith(tcpPing: value),
         ),
         GeneralOverrideKey.tcpConcurrent => ToggleOverrideField(
           (config) => config.tcpConcurrent,

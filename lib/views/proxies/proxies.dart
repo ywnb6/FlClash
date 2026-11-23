@@ -101,24 +101,6 @@ class _ProxiesViewState extends ConsumerState<ProxiesView> {
               _updateStyle((state) => state.copyWith(iconStyle: iconStyle)),
         ),
       PopupMenuItem(
-        glyph: AppGlyphs.speed,
-        label: appLocalizations.tcpPing,
-        checked: ref.read(
-          patchClashConfigProvider.select((state) => state.tcpPing),
-        ),
-        onPressed: () {
-          final config = ref.read(patchClashConfigProvider);
-          ref
-              .read(patchClashConfigProvider.notifier)
-              .update((state) => state.copyWith(tcpPing: !state.tcpPing));
-          dialogs.showBanner(
-            config.tcpPing
-                ? appLocalizations.tcpPingOff
-                : appLocalizations.tcpPingOn,
-          );
-        },
-      ),
-      PopupMenuItem(
         glyph: AppGlyphs.eyeOff,
         label: appLocalizations.hideTimeoutProxies,
         checked: style.hideTimeoutProxies,
