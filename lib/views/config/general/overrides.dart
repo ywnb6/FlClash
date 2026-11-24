@@ -23,6 +23,9 @@ PatchClashConfig _setGeneralOverrides(
 
 String _generalOverrideDescription(AppLocalizations l) => l.generalOverrideDesc;
 
+String? _validateTestUrl(String? value, AppLocalizations l) =>
+    value?.isUrl == true ? null : l.urlTip(l.testUrl);
+
 const _generalOverrideSpec = _GeneralOverrideSpec();
 
 class _GeneralOverrideSpec
