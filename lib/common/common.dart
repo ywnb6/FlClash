@@ -47,6 +47,7 @@ export 'snowflake.dart';
 export 'string.dart';
 export 'system.dart';
 export 'system_fonts.dart';
+export 'tcp_ping.dart';
 export 'task.dart';
 export 'task_pool.dart';
 export 'webdav.dart';
