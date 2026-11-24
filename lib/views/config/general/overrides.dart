@@ -23,9 +23,6 @@ PatchClashConfig _setGeneralOverrides(
 
 String _generalOverrideDescription(AppLocalizations l) => l.generalOverrideDesc;
 
-String? _validateTestUrl(String? value, AppLocalizations l) =>
-    value?.isUrl == true ? null : l.urlTip(l.testUrl);
-
 const _generalOverrideSpec = _GeneralOverrideSpec();
 
 class _GeneralOverrideSpec
@@ -44,7 +41,11 @@ class _GeneralOverrideSpec
   String title(AppLocalizations l) => l.core;
 
   @override
-  List<GeneralOverrideKey> get values => GeneralOverrideKey.values;
+  // The test URL only matters to the HTTP path, which a handshake measurement
+  // never reads, so it stays out of the list while TCPing is the way to test.
+  List<GeneralOverrideKey> get values => GeneralOverrideKey.values
+      .where((key) => key != GeneralOverrideKey.testUrl)
+      .toList();
 
   @override
   NullStatusIllustration get illustration => NullStatusIllustration.data;
