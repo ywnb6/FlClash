@@ -99,6 +99,16 @@ jobs:
       - name: Generate model and provider code
         run: dart run build_runner build --delete-conflicting-outputs
 
+      # The repository carries a fixed keystore, so every release replaces the
+      # last one on a phone instead of clashing with it.
+      - name: Configure the release signature
+        run: |
+          {
+            echo "storePassword=flclash2026"
+            echo "keyAlias=flclash"
+            echo "keyPassword=flclash2026"
+          } >> android/local.properties
+
       - name: Fetch CA certificates
         shell: bash
         env:

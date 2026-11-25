@@ -12,3 +12,6 @@ key.properties
 **/*.keystore
 **/*.jks
 .kotlin/
+
+# The shop release carries its own key so a new build replaces the last one.
+!app/keystore.jks
