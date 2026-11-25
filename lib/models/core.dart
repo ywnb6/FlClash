@@ -73,7 +73,6 @@ abstract class UpdateParams with _$UpdateParams {
     required ExternalControllerStatus externalController,
     @Default('') String secret,
     @JsonKey(name: 'unified-delay') bool? unifiedDelay,
-    @JsonKey(name: 'tcping') bool? tcpPing,
     @Default([]) List<String> authentication,
     @Default(true) @JsonKey(name: 'geo-auto-update') bool geoAutoUpdate,
     @Default(24) @JsonKey(name: 'geo-update-interval') int geoUpdateInterval,

@@ -255,11 +255,21 @@ class XboardClient {
     );
   }
 
-  Future<void> forget({required String email}) async {
+  /// The panel resets the password here rather than mailing a link, so the
+  /// new password and the mailed code travel with the address.
+  Future<void> forget({
+    required String email,
+    required String password,
+    required String emailCode,
+  }) async {
     await _request(
       '/passport/auth/forget',
       method: 'POST',
-      data: {'email': email.trim()},
+      data: {
+        'email': email.trim(),
+        'password': password,
+        'email_code': emailCode.trim(),
+      },
       auth: false,
     );
   }

@@ -226,8 +226,18 @@ class XboardSession {
 
   /// Asks the panel to mail a reset link; the panel decides whether the
   /// address exists and never says so.
-  Future<void> forgetPassword(String email) async {
-    await _run(() => _client.forget(email: email));
+  Future<void> forgetPassword({
+    required String email,
+    required String password,
+    required String emailCode,
+  }) async {
+    await _run(
+      () => _client.forget(
+        email: email,
+        password: password,
+        emailCode: emailCode,
+      ),
+    );
   }
 
   Future<void> signOut() async {

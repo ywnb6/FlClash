@@ -4,7 +4,6 @@ extension on GeneralOverrideKey {
   String label(AppLocalizations l) => switch (this) {
     GeneralOverrideKey.testUrl => l.testUrl,
     GeneralOverrideKey.unifiedDelay => l.unifiedDelay,
-    GeneralOverrideKey.tcpPing => l.tcpPing,
     GeneralOverrideKey.tcpConcurrent => l.tcpConcurrent,
     GeneralOverrideKey.ipv6 => 'IPv6',
     GeneralOverrideKey.geodataLoader => l.geodataLoader,
@@ -47,8 +46,7 @@ class _GeneralOverrideSpec
   // The test URL only matters to the HTTP path, which a handshake measurement
   // never reads, so it stays out of the list while TCPing is the way to test.
   List<GeneralOverrideKey> get values => GeneralOverrideKey.values
-      .where((key) => key != GeneralOverrideKey.testUrl)
-      .toList();
+;
 
   @override
   NullStatusIllustration get illustration => NullStatusIllustration.data;
@@ -78,10 +76,6 @@ class _GeneralOverrideSpec
         GeneralOverrideKey.unifiedDelay => ToggleOverrideField(
           (config) => config.unifiedDelay,
           (config, value) => config.copyWith(unifiedDelay: value),
-        ),
-        GeneralOverrideKey.tcpPing => ToggleOverrideField(
-          (config) => config.tcpPing,
-          (config, value) => config.copyWith(tcpPing: value),
         ),
         GeneralOverrideKey.tcpConcurrent => ToggleOverrideField(
           (config) => config.tcpConcurrent,

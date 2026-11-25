@@ -515,6 +515,7 @@ class _SignInSheetState extends State<_SignInSheet> {
   final _invite = TextEditingController();
   final _code = TextEditingController();
   bool _register = false;
+  bool _reset = false;
   bool _busy = false;
   bool _sendingCode = false;
   int _cooldown = 0;
@@ -576,22 +577,43 @@ class _SignInSheetState extends State<_SignInSheet> {
     }
   }
 
-  Future<void> _forgetPassword() async {
+  /// The panel resets the password in place, so the form asks for the mailed
+  /// code and the new password instead of mailing a link.
+  Future<void> _resetPassword() async {
+    final appLocalizations = context.appLocalizations;
     final email = _email.text.trim();
+    final password = _password.text;
+    final code = _code.text.trim();
     if (email.isEmpty) {
-      setState(() => _error = context.appLocalizations.storeFillEmail);
+      setState(() => _error = appLocalizations.storeFillEmail);
       return;
     }
+    if (code.isEmpty) {
+      setState(() => _error = appLocalizations.storeFillCode);
+      return;
+    }
+    if (password.length < 8) {
+      setState(() => _error = appLocalizations.storePasswordTooShort);
+      return;
+    }
+    FocusScope.of(context).unfocus();
     setState(() {
       _busy = true;
       _error = null;
     });
     try {
-      await widget.session.forgetPassword(email);
+      await widget.session.forgetPassword(
+        email: email,
+        password: password,
+        emailCode: code,
+      );
       if (!mounted) return;
-      setState(() => _busy = false);
+      setState(() {
+        _busy = false;
+        _reset = false;
+      });
       dialogs.showBanner(
-        context.appLocalizations.storeResetSent,
+        appLocalizations.storeResetDone,
         level: BannerLevel.success,
       );
     } catch (error) {
@@ -665,11 +687,13 @@ class _SignInSheetState extends State<_SignInSheet> {
     final colors = context.colorScheme;
     final config = widget.session.siteConfig;
     final showCaptcha = config.captchaEnabled && config.captchaSiteKey.isNotEmpty;
-    final needCode = _register && config.needEmailVerify;
+    final needCode = (_register || _reset) && config.needEmailVerify;
     final showInvite = _register && config.inviteEnabled;
     final inviteRequired = _register && config.inviteRequired;
     return Scaffold(
-      title: _register
+      title: _reset
+          ? appLocalizations.storeForgotPassword
+          : _register
           ? appLocalizations.storeRegister
           : appLocalizations.storeSignIn,
       body: ListView(
@@ -702,7 +726,7 @@ class _SignInSheetState extends State<_SignInSheet> {
                   onFieldSubmitted: (_) => _submit(),
                 ),
               ),
-              if (needCode)
+              if (needCode || _reset)
                 ListItem(
                   title: FormRowTextField(
                     controller: _code,
@@ -758,11 +782,15 @@ class _SignInSheetState extends State<_SignInSheet> {
             ),
           const SizedBox(height: 12),
           FilledButton(
-            onPressed: _busy ? null : _submit,
+            onPressed: _busy
+                ? null
+                : (_reset ? _resetPassword : _submit),
             child: _busy
                 ? const ActivityIndicator(size: 16)
                 : Text(
-                    _register
+                    _reset
+                        ? appLocalizations.storeResetPassword
+                        : _register
                         ? appLocalizations.storeRegister
                         : appLocalizations.storeSignIn,
                   ),
@@ -781,9 +809,14 @@ class _SignInSheetState extends State<_SignInSheet> {
                   : appLocalizations.storeNoAccount,
             ),
           ),
-          if (!_register)
+          if (!_register && !_reset)
             TextButton(
-              onPressed: _busy ? null : _forgetPassword,
+              onPressed: _busy
+                  ? null
+                  : () => setState(() {
+                      _reset = true;
+                      _error = null;
+                    }),
               child: Text(appLocalizations.storeForgotPassword),
             ),
         ],

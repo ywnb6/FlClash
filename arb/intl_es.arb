@@ -1203,5 +1203,9 @@
   "storeFillCaptcha": "Completa la verificación",
   "storePendingOrder": "Hay un pedido pendiente",
   "storeContinuePay": "Continuar el pago",
-  "storePickPayMethod": "Elige un método de pago"
+  "storePickPayMethod": "Elige un método de pago",
+  "storeResetPassword": "Restablecer contraseña",
+  "storeBackToSignIn": "Volver al inicio",
+  "storePasswordTooShort": "Al menos 8 caracteres",
+  "storeResetDone": "Contraseña restablecida"
 }

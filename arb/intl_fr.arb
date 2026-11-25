@@ -1203,5 +1203,9 @@
   "storeFillCaptcha": "Complétez la vérification",
   "storePendingOrder": "Une commande est en attente",
   "storeContinuePay": "Continuer le paiement",
-  "storePickPayMethod": "Choisissez un moyen de paiement"
+  "storePickPayMethod": "Choisissez un moyen de paiement",
+  "storeResetPassword": "Réinitialiser",
+  "storeBackToSignIn": "Retour à la connexion",
+  "storePasswordTooShort": "Au moins 8 caractères",
+  "storeResetDone": "Mot de passe réinitialisé"
 }

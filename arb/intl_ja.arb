@@ -1203,5 +1203,9 @@
   "storeFillCaptcha": "認証を完了してください",
   "storePendingOrder": "未払いの注文があります",
   "storeContinuePay": "この注文を支払う",
-  "storePickPayMethod": "支払い方法を選択してください"
+  "storePickPayMethod": "支払い方法を選択してください",
+  "storeResetPassword": "パスワードを再設定",
+  "storeBackToSignIn": "ログインに戻る",
+  "storePasswordTooShort": "8文字以上にしてください",
+  "storeResetDone": "再設定しました"
 }

@@ -1203,5 +1203,9 @@
   "storeFillCaptcha": "Пройдите проверку",
   "storePendingOrder": "Есть неоплаченный заказ",
   "storeContinuePay": "Оплатить его",
-  "storePickPayMethod": "Выберите способ оплаты"
+  "storePickPayMethod": "Выберите способ оплаты",
+  "storeResetPassword": "Сбросить пароль",
+  "storeBackToSignIn": "Вернуться к входу",
+  "storePasswordTooShort": "Не менее 8 символов",
+  "storeResetDone": "Пароль сброшен"
 }

@@ -396,9 +396,6 @@ class ProxiesAction extends _$ProxiesAction {
     if (targets.isEmpty) {
       return;
     }
-    if (ref.read(patchClashConfigProvider).tcpPing) {
-      await _primeNodeAddrs();
-    }
     final pending = ref.read(pendingDelayTestsProvider.notifier);
     final job = _DelayTestJob(
       targets.map((target) => target.key),
@@ -430,69 +427,6 @@ class ProxiesAction extends _$ProxiesAction {
     }
   }
 
-  /// TCPing dials the node's own endpoint, the way a client outside the
-  /// tunnel sees it; anything without an endpoint, or with the switch off,
-  /// still goes through the core so a routed request is what gets timed.
-  /// The node's own endpoint from the core, cached for the run so a batch of
-  /// tests asks once.
-  final _addrCache = <String, String?>{};
-
-  /// Fills the cache once per run, so the core is asked for the node list a
-  /// single time instead of once per test.
-  Future<void> _primeNodeAddrs() async {
-    _addrCache.clear();
-    try {
-      final data = await _core.getProxies();
-      for (final entry in data.proxies.entries) {
-        final node = entry.value;
-        if (node is! Map) continue;
-        final value = node['addr'];
-        if (value is String && value.isNotEmpty) {
-          _addrCache[entry.key] = value;
-        }
-      }
-    } catch (_) {}
-  }
-
-  Future<String?> _nodeAddr(String proxyName) async {
-    if (_addrCache.containsKey(proxyName)) return _addrCache[proxyName];
-    String? addr;
-    try {
-      final data = await _core.getProxies();
-      final node = data.proxies[proxyName];
-      if (node is Map) {
-        final value = node['addr'];
-        if (value is String && value.isNotEmpty) addr = value;
-      }
-    } catch (_) {}
-    _addrCache[proxyName] = addr;
-    return addr;
-  }
-
-  Future<Delay> _measureDelay(
-    _DelayTestJob job,
-    _DelayTestTarget target,
-  ) async {
-    if (ref.read(patchClashConfigProvider).tcpPing) {
-      final addr = await _nodeAddr(target.proxyName);
-      if (addr != null && TcpPing.canMeasure(addr)) {
-        final millis = await TcpPing.measure(addr);
-        return Delay(
-          name: target.proxyName,
-          url: target.testUrl,
-          value: millis,
-        );
-      }
-    }
-    return _core.testDelay(
-      TestDelayParams(
-        proxyName: target.proxyName,
-        testUrl: target.testUrl,
-        timeout: job.timeout.inMilliseconds,
-      ),
-    );
-  }
-
   Future<void> _runDelayTest(_DelayTestJob job, _DelayTestTarget target) async {
     if (job.cancelled) {
       return;
@@ -502,7 +436,13 @@ class ProxiesAction extends _$ProxiesAction {
       _scheduleDelayFlush();
     }
     try {
-      final delay = await _measureDelay(job, target);
+      final delay = await _core.testDelay(
+        TestDelayParams(
+          proxyName: target.proxyName,
+          testUrl: target.testUrl,
+          timeout: job.timeout.inMilliseconds,
+        ),
+      );
       if (!job.cancelled) {
         setDelay(delay);
       }
