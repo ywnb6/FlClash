@@ -895,7 +895,12 @@ class _PlanSheetState extends State<_PlanSheet> {
       if (!mounted) return;
       await widget.session.refreshUserInfo();
       if (!mounted) return;
-      Navigator.of(context).pop(true);
+      // The payment sheet was the last route above this one, so closing it may
+      // already have taken this one with it; popping again empties the stack.
+      final route = ModalRoute.of(context);
+      if (route?.isActive ?? false) {
+        Navigator.of(context).pop(true);
+      }
     } catch (error) {
       if (!mounted) return;
       setState(() {

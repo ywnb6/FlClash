@@ -54,7 +54,6 @@ class _PaymentSheetState extends State<_PaymentSheet> {
   void initState() {
     super.initState();
     _poller = Timer.periodic(const Duration(seconds: 5), (_) => _poll());
-    _openBrowser();
   }
 
   @override
@@ -156,22 +155,9 @@ class _PaymentSheetState extends State<_PaymentSheet> {
                 child: Text(appLocalizations.storeOpenPayPage),
               ),
             const SizedBox(height: 12),
-            generateSection(
-              items: [
-                ListItem(
-                  title: Text(appLocalizations.storePayLink),
-                  subtitle: SelectableText(
-                    payload,
-                    style: AppTextStyle.footnote
-                        .of(context)
-                        .copyWith(color: colors.onSurfaceVariant),
-                  ),
-                  trailing: TextButton(
-                    onPressed: _copy,
-                    child: Text(appLocalizations.storeCopyLink),
-                  ),
-                ),
-              ],
+            TextButton(
+              onPressed: _copy,
+              child: Text(appLocalizations.storeCopyLink),
             ),
             const SizedBox(height: 16),
             Row(
