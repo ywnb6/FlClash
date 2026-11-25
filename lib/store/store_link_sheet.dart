@@ -48,7 +48,8 @@ class _LinkSheetState extends State<_LinkSheet> {
   void _confirm() {
     final link = _controller.text.trim();
     if (link.isEmpty) return;
-    Navigator.of(context).pop(link);
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) navigator.pop(link);
   }
 
   @override

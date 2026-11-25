@@ -490,6 +490,16 @@ class _PlanRow extends StatelessWidget {
   }
 }
 
+
+/// Closes the current route only while a route below it exists; a sheet stack
+/// that already popped must not take the page with it.
+void closeStoreRoute<T>(BuildContext context, [T? result]) {
+  final navigator = Navigator.of(context);
+  if (navigator.canPop()) {
+    navigator.pop(result);
+  }
+}
+
 Future<bool> showStoreSignInSheet(
   BuildContext context, {
   required XboardSession session,
@@ -523,6 +533,7 @@ class _SignInSheetState extends State<_SignInSheet> {
   Timer? _ticker;
   String? _error;
   String? _captchaToken;
+  XboardOrderRecord? _pendingOrder;
 
   @override
   void dispose() {
@@ -672,7 +683,7 @@ class _SignInSheetState extends State<_SignInSheet> {
         );
       }
       if (!mounted) return;
-      Navigator.of(context).pop(true);
+      closeStoreRoute(context, true);
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -772,6 +783,17 @@ class _SignInSheetState extends State<_SignInSheet> {
                 siteKey: config.captchaSiteKey,
                 type: config.captchaType,
                 onToken: (token) => setState(() => _captchaToken = token),
+              ),
+            ),
+          if (_pendingOrder != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: _PendingOrderCard(
+                order: _pendingOrder!,
+                locale: locale,
+                busy: _busy,
+                onResume: () => _resumePendingOrder(_pendingOrder!),
+                onDismiss: () => setState(() => _pendingOrder = null),
               ),
             ),
           if (_error != null)
@@ -896,7 +918,7 @@ class _PlanSheetState extends State<_PlanSheet> {
     final period = _period;
     if (period == null) return;
     if (!widget.session.isSignedIn) {
-      Navigator.of(context).pop(false);
+      closeStoreRoute(context, false);
       return;
     }
     setState(() {
@@ -914,7 +936,7 @@ class _PlanSheetState extends State<_PlanSheet> {
       if (_paymentId == null) {
         await widget.session.refreshUserInfo();
         if (!mounted) return;
-        Navigator.of(context).pop(true);
+        closeStoreRoute(context, true);
         dialogs.showBanner(
           currentAppLocalizations.storeOrderCreated,
           level: BannerLevel.success,
@@ -940,7 +962,7 @@ class _PlanSheetState extends State<_PlanSheet> {
       // already have taken this one with it; popping again empties the stack.
       final route = ModalRoute.of(context);
       if (route?.isActive ?? false) {
-        Navigator.of(context).pop(true);
+        closeStoreRoute(context, true);
       }
     } catch (error) {
       if (!mounted) return;
@@ -948,7 +970,7 @@ class _PlanSheetState extends State<_PlanSheet> {
       final pending = await _pendingOrderFor(error);
       if (!mounted) return;
       if (pending != null) {
-        await _resumePendingOrder(pending);
+        await _offerPendingOrder(pending);
         return;
       }
       setState(() => _error = _humanError(error));
@@ -970,17 +992,13 @@ class _PlanSheetState extends State<_PlanSheet> {
     return null;
   }
 
+  /// Shows the unpaid order in place instead of over the sheet, so the payment
+  /// sheet that follows is never raised from inside another route.
+  Future<void> _offerPendingOrder(XboardOrderRecord order) async {
+    setState(() => _pendingOrder = order);
+  }
+
   Future<void> _resumePendingOrder(XboardOrderRecord order) async {
-    final resume = await showStoreResumeDialog(
-      context,
-      order: order,
-      locale: Localizations.localeOf(context).languageCode,
-    );
-    if (!mounted) return;
-    if (resume != true) {
-      setState(() => _error = context.appLocalizations.storeOrderCancelled);
-      return;
-    }
     final paymentId = _paymentId;
     if (paymentId == null) {
       setState(() => _error = context.appLocalizations.storePickPayMethod);
@@ -994,6 +1012,10 @@ class _PlanSheetState extends State<_PlanSheet> {
       );
       if (!mounted) return;
       setState(() => _busy = false);
+      // A sheet raised from inside the dialog's route leaves the navigator
+      // holding a popped route; wait for the frame that settles it first.
+      await Future<void>.delayed(Duration.zero);
+      if (!mounted) return;
       await showStorePaymentSheet(
         context,
         payment: payment,
@@ -1003,8 +1025,7 @@ class _PlanSheetState extends State<_PlanSheet> {
       if (!mounted) return;
       await widget.session.refreshUserInfo();
       if (!mounted) return;
-      final route = ModalRoute.of(context);
-      if (route?.isActive ?? false) Navigator.of(context).pop(true);
+      closeStoreRoute(context, true);
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -1204,7 +1225,7 @@ class _SettingsSheetState extends State<_SettingsSheet> {
     await widget.session.setUserAgent(_ua.text);
     await request.setCustomRepository(_repo.text);
     if (!mounted) return;
-    Navigator.of(context).pop();
+      closeStoreRoute(context);
     dialogs.showBanner(
       currentAppLocalizations.storeSettingsSaved,
       level: BannerLevel.success,
@@ -1267,58 +1288,68 @@ class _SettingsSheetState extends State<_SettingsSheet> {
   }
 }
 
-/// Asks whether to finish paying the order the panel is still holding, rather
-/// than the one the user just tried to create.
-Future<bool?> showStoreResumeDialog(
-  BuildContext context, {
-  required XboardOrderRecord order,
-  required String locale,
-}) {
-  return dialogs.showCommonDialog<bool>(
-    context: context,
-    child: _ResumeDialog(order: order, locale: locale),
-  );
-}
-
-class _ResumeDialog extends StatelessWidget {
-  const _ResumeDialog({required this.order, required this.locale});
+/// The unpaid order the panel is holding, shown in place: a dialog over the
+/// sheet would leave a popped route behind, and the payment sheet raised after
+/// it landed on a broken navigator.
+class _PendingOrderCard extends StatelessWidget {
+  const _PendingOrderCard({
+    required this.order,
+    required this.locale,
+    required this.busy,
+    required this.onResume,
+    required this.onDismiss,
+  });
 
   final XboardOrderRecord order;
   final String locale;
+  final bool busy;
+  final VoidCallback onResume;
+  final VoidCallback onDismiss;
 
   @override
   Widget build(BuildContext context) {
     final appLocalizations = context.appLocalizations;
     final colors = context.colorScheme;
-    return Padding(
-      padding: const EdgeInsets.all(20),
+    return Card(
+      padding: const EdgeInsets.all(16),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             appLocalizations.storePendingOrder,
-            textAlign: TextAlign.center,
-            style: AppTextStyle.title3.of(context, emphasized: true),
+            style: AppTextStyle.headline.of(context),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 6),
           Text(
-            '${order.planName} · ${order.periodLabel(locale)}\n'
-            '${order.statusLabel(locale)} · ${formatPrice(order.totalAmount)}',
-            textAlign: TextAlign.center,
-            style: AppTextStyle.body
+            '${order.planName} · ${order.periodLabel(locale)}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyle.footnote
                 .of(context)
                 .copyWith(color: colors.onSurfaceVariant),
           ),
-          const SizedBox(height: 20),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(appLocalizations.storeContinuePay),
+          const SizedBox(height: 2),
+          Text(
+            '${order.statusLabel(locale)} · ${formatPrice(order.totalAmount)}',
+            style: AppTextStyle.footnote.of(context).copyWith(
+              color: colors.error,
+            ),
           ),
-          const SizedBox(height: 8),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(appLocalizations.cancel),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              FilledButton(
+                onPressed: busy ? null : onResume,
+                child: busy
+                    ? const ActivityIndicator(size: 14)
+                    : Text(appLocalizations.storeContinuePay),
+              ),
+              const SizedBox(width: 8),
+              TextButton(
+                onPressed: busy ? null : onDismiss,
+                child: Text(appLocalizations.cancel),
+              ),
+            ],
           ),
         ],
       ),
