@@ -657,7 +657,9 @@ class _SignInSheetState extends State<_SignInSheet> {
       setState(() => _error = appLocalizations.storeFillInvite);
       return;
     }
-    if (config.captchaEnabled && (_captchaToken ?? '').isEmpty) {
+    final mode = storeAuthMode(register: _register, reset: _reset);
+    if (mode.showsCaptchaFor(panelAsks: config.captchaEnabled) &&
+        (_captchaToken ?? '').isEmpty) {
       setState(() => _error = appLocalizations.storeFillCaptcha);
       return;
     }

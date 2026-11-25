@@ -53,6 +53,12 @@ class _CaptchaViewState extends State<CaptchaView> {
 </script>
 ''';
 
+  /// The page has to sit on a real origin, or the provider's script refuses to
+  /// run and the widget shows its own "cannot reach the site" notice.
+  static String _baseUrlFor(String type) => type.startsWith('recaptcha')
+      ? 'https://www.google.com/'
+      : 'https://challenges.cloudflare.com/';
+
   @override
   void initState() {
     super.initState();
@@ -72,7 +78,7 @@ class _CaptchaViewState extends State<CaptchaView> {
         '<meta name="viewport" content="width=device-width,initial-scale=1">'
         '<style>body{margin:0;background:transparent}</style>'
         '</head><body>$_script</body></html>',
-        baseUrl: 'https://captcha.local',
+        baseUrl: _baseUrlFor(widget.type),
       );
     _controller = controller;
   }
