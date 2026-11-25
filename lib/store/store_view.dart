@@ -1090,12 +1090,6 @@ class _SettingsSheetState extends State<_SettingsSheet> {
     super.dispose();
   }
 
-  Future<void> _editUrl() async {
-    final value = await showStoreUrlDialog(context, initial: _url.text);
-    if (!mounted || value == null) return;
-    setState(() => _url.text = value);
-  }
-
   Future<void> _save() async {
     await widget.session.setBaseUrl(_url.text);
     await widget.session.setUserAgent(_ua.text);
@@ -1125,13 +1119,13 @@ class _SettingsSheetState extends State<_SettingsSheet> {
             items: [
               ListItem(
                 title: Text(appLocalizations.storePanelUrl),
-                subtitle: Text(
-                  widget.session.siteName,
-                  style: AppTextStyle.footnote
-                      .of(context)
-                      .copyWith(color: context.colorScheme.onSurfaceVariant),
+                subtitle: FormRowTextField(
+                  controller: _url,
+                  hintText: appLocalizations.storePanelUrl,
+                  keyboardType: TextInputType.url,
+                  autocorrect: false,
+                  enableSuggestions: false,
                 ),
-                onTap: _editUrl,
               ),
               ListItem(
                 title: Text(appLocalizations.storeUserAgent),
@@ -1146,7 +1140,7 @@ class _SettingsSheetState extends State<_SettingsSheet> {
                 title: Text(appLocalizations.storeUpdateSource),
                 subtitle: FormRowTextField(
                   controller: _repo,
-                  hintText: 'owner/repo',
+                  hintText: repository,
                   autocorrect: false,
                   enableSuggestions: false,
                 ),
@@ -1156,73 +1150,6 @@ class _SettingsSheetState extends State<_SettingsSheet> {
           const SizedBox(height: 16),
           FilledButton(
             onPressed: _save,
-            child: Text(appLocalizations.storeSave),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Asks for a panel address; the settings row shows the site name instead of
-/// the address, so editing happens in a dialog of its own.
-Future<String?> showStoreUrlDialog(
-  BuildContext context, {
-  required String initial,
-}) {
-  return dialogs.showCommonDialog<String>(
-    context: context,
-    child: _UrlDialog(initial: initial),
-  );
-}
-
-class _UrlDialog extends StatefulWidget {
-  const _UrlDialog({required this.initial});
-
-  final String initial;
-
-  @override
-  State<_UrlDialog> createState() => _UrlDialogState();
-}
-
-class _UrlDialogState extends State<_UrlDialog> {
-  late final _controller = TextEditingController(text: widget.initial);
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final appLocalizations = context.appLocalizations;
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            appLocalizations.storePanelUrl,
-            textAlign: TextAlign.center,
-            style: AppTextStyle.title3.of(context, emphasized: true),
-          ),
-          const SizedBox(height: 16),
-          FormRowTextField(
-            controller: _controller,
-            hintText: appLocalizations.storePanelUrl,
-            keyboardType: TextInputType.url,
-            autocorrect: false,
-            enableSuggestions: false,
-            autofocus: true,
-          ),
-          const SizedBox(height: 20),
-          FilledButton(
-            onPressed: () {
-              final value = _controller.text.trim();
-              Navigator.of(context).pop(value.isEmpty ? null : value);
-            },
             child: Text(appLocalizations.storeSave),
           ),
         ],
