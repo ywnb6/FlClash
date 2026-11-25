@@ -785,17 +785,6 @@ class _SignInSheetState extends State<_SignInSheet> {
                 onToken: (token) => setState(() => _captchaToken = token),
               ),
             ),
-          if (_pendingOrder != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 12),
-              child: _PendingOrderCard(
-                order: _pendingOrder!,
-                locale: locale,
-                busy: _busy,
-                onResume: () => _resumePendingOrder(_pendingOrder!),
-                onDismiss: () => setState(() => _pendingOrder = null),
-              ),
-            ),
           if (_error != null)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
@@ -1094,6 +1083,17 @@ class _PlanSheetState extends State<_PlanSheet> {
               enableSuggestions: false,
             ),
           ),
+          if (_pendingOrder != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: _PendingOrderCard(
+                order: _pendingOrder!,
+                locale: locale,
+                busy: _busy,
+                onResume: () => _resumePendingOrder(_pendingOrder!),
+                onDismiss: () => setState(() => _pendingOrder = null),
+              ),
+            ),
           if (_error != null)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
