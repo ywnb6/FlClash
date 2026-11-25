@@ -68,25 +68,6 @@ void main() {
       expect(StoreAuthMode.reset.showsForgotPassword, isFalse);
     });
 
-    test('the human check guards registration alone', () {
-      expect(
-        StoreAuthMode.signIn.showsCaptchaFor(panelAsks: true),
-        isFalse,
-      );
-      expect(
-        StoreAuthMode.reset.showsCaptchaFor(panelAsks: true),
-        isFalse,
-      );
-      expect(
-        StoreAuthMode.register.showsCaptchaFor(panelAsks: true),
-        isTrue,
-      );
-      expect(
-        StoreAuthMode.register.showsCaptchaFor(panelAsks: false),
-        isFalse,
-      );
-    });
-
     test('the reset form keeps the password field for the new one', () {
       expect(StoreAuthMode.signIn.showsPassword, isTrue);
       expect(StoreAuthMode.register.showsPassword, isTrue);

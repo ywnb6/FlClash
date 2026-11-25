@@ -16,7 +16,6 @@ hooks:
 dependencies:
   flutter:
     sdk: flutter
-  webview_flutter: ^4.10.0
   flutter_localizations:
     sdk: flutter
   intl: any

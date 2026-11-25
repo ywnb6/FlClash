@@ -6,7 +6,6 @@ import 'package:fl_clash/features/features.dart';
 import 'package:fl_clash/providers/action.dart';
 import 'package:fl_clash/store/xboard_client.dart';
 import 'package:fl_clash/store/xboard_models.dart';
-import 'package:fl_clash/store/captcha_view.dart';
 import 'package:fl_clash/store/store_auth_mode.dart';
 import 'package:fl_clash/store/store_link_sheet.dart';
 import 'package:fl_clash/store/store_orders_sheet.dart';
@@ -533,7 +532,6 @@ class StoreAuthSheetState extends State<StoreAuthSheet> {
   int _cooldown = 0;
   Timer? _ticker;
   String? _error;
-  String? _captchaToken;
 
   @override
   void dispose() {
@@ -658,12 +656,6 @@ class StoreAuthSheetState extends State<StoreAuthSheet> {
       setState(() => _error = appLocalizations.storeFillInvite);
       return;
     }
-    final mode = storeAuthMode(register: _register, reset: _reset);
-    if (mode.showsCaptchaFor(panelAsks: config.captchaEnabled) &&
-        (_captchaToken ?? '').isEmpty) {
-      setState(() => _error = appLocalizations.storeFillCaptcha);
-      return;
-    }
     setState(() {
       _busy = true;
       _error = null;
@@ -675,13 +667,11 @@ class StoreAuthSheetState extends State<StoreAuthSheet> {
           password: password,
           inviteCode: _invite.text,
           emailCode: _code.text,
-          captchaToken: _captchaToken,
         );
       } else {
         await widget.session.login(
           email: email,
           password: password,
-          captchaToken: _captchaToken,
         );
       }
       if (!mounted) return;
@@ -703,9 +693,6 @@ class StoreAuthSheetState extends State<StoreAuthSheet> {
     final config = widget.session.siteConfig;
     // The panel's switch is about registration only; signing in and resetting
     // a password take no human check.
-    final showCaptcha = mode.showsCaptchaFor(
-      panelAsks: config.captchaEnabled && config.captchaSiteKey.isNotEmpty,
-    );
     final needCode = mode.showsEmailCodeFor(
       panelNeedsCode: config.needEmailVerify,
     );
@@ -782,15 +769,6 @@ class StoreAuthSheetState extends State<StoreAuthSheet> {
                 ),
             ],
           ),
-          if (showCaptcha)
-            Padding(
-              padding: const EdgeInsets.only(top: 12),
-              child: CaptchaView(
-                siteKey: config.captchaSiteKey,
-                type: config.captchaType,
-                onToken: (token) => setState(() => _captchaToken = token),
-              ),
-            ),
           if (_error != null)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
