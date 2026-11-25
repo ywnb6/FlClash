@@ -87,6 +87,10 @@ jobs:
       - name: Install dependencies
         run: |
           flutter --version
+          # A dependency added without refreshing the lock file would leave pub
+          # resolution out of date, which the build refuses; resolving from the
+          # manifest keeps the two in step.
+          rm -f pubspec.lock
           flutter pub get
           flutter gen-l10n
 
