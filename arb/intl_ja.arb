@@ -1197,5 +1197,8 @@
   "storeNoOrders": "注文はありません",
   "tcpPing": "TCPing テスト",
   "tcpPingOn": "TCPingに切り替えました",
-  "tcpPingOff": "HTTPテストに切り替えました"
+  "tcpPingOff": "HTTPテストに切り替えました",
+  "storeForgotPassword": "パスワードを忘れた",
+  "storeResetSent": "リセットメールを送信しました",
+  "storeFillCaptcha": "認証を完了してください"
 }

@@ -135,9 +135,17 @@ class XboardSession {
     });
   }
 
-  Future<void> login({required String email, required String password}) async {
+  Future<void> login({
+    required String email,
+    required String password,
+    String? captchaToken,
+  }) async {
     await _run(() async {
-      final token = await _client.login(email: email, password: password);
+      final token = await _client.login(
+        email: email,
+        password: password,
+        captchaToken: captchaToken,
+      );
       await _setToken(token);
       _userInfo = await _client.fetchUserInfo();
     });
@@ -148,6 +156,7 @@ class XboardSession {
     required String password,
     String? inviteCode,
     String? emailCode,
+    String? captchaToken,
   }) async {
     await _run(() async {
       final token = await _client.register(
@@ -155,6 +164,7 @@ class XboardSession {
         password: password,
         inviteCode: inviteCode,
         emailCode: emailCode,
+        captchaToken: captchaToken,
       );
       await _setToken(token);
       _userInfo = await _client.fetchUserInfo();
@@ -212,6 +222,12 @@ class XboardSession {
 
   Future<void> sendEmailVerify(String email) async {
     await _run(() => _client.sendEmailVerify(email: email));
+  }
+
+  /// Asks the panel to mail a reset link; the panel decides whether the
+  /// address exists and never says so.
+  Future<void> forgetPassword(String email) async {
+    await _run(() => _client.forget(email: email));
   }
 
   Future<void> signOut() async {

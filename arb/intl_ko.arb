@@ -1197,5 +1197,8 @@
   "storeNoOrders": "주문 내역이 없습니다",
   "tcpPing": "TCPing",
   "tcpPingOn": "TCPing으로 전환됨",
-  "tcpPingOff": "HTTP 테스트로 전환됨"
+  "tcpPingOff": "HTTP 테스트로 전환됨",
+  "storeForgotPassword": "비밀번호 찾기",
+  "storeResetSent": "재설정 메일을 보냈습니다",
+  "storeFillCaptcha": "인증을 완료하세요"
 }

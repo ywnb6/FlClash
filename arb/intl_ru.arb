@@ -1197,5 +1197,8 @@
   "storeNoOrders": "Заказов нет",
   "tcpPing": "TCPing",
   "tcpPingOn": "Переключено на TCPing",
-  "tcpPingOff": "Переключено на HTTP"
+  "tcpPingOff": "Переключено на HTTP",
+  "storeForgotPassword": "Забыли пароль",
+  "storeResetSent": "Письмо для сброса отправлено",
+  "storeFillCaptcha": "Пройдите проверку"
 }

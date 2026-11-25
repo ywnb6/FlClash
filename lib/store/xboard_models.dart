@@ -224,6 +224,10 @@ class XboardSiteConfig {
     this.appUrl = '',
     this.description = '',
     this.emailSuffixes = const [],
+    this.captchaEnabled = false,
+    this.captchaType = '',
+    this.turnstileSiteKey = '',
+    this.recaptchaSiteKey = '',
   });
 
   final bool needEmailVerify;
@@ -239,6 +243,19 @@ class XboardSiteConfig {
   final String description;
   final List<String> emailSuffixes;
 
+  /// Whether signing up asks for a human check, and which widget draws it.
+  final bool captchaEnabled;
+  final String captchaType;
+  final String turnstileSiteKey;
+  final String recaptchaSiteKey;
+
+  /// The site key the widget needs, empty when the panel asks for none.
+  String get captchaSiteKey => switch (captchaType) {
+    'turnstile' => turnstileSiteKey,
+    'recaptcha' || 'recaptcha-v3' => recaptchaSiteKey,
+    _ => turnstileSiteKey.isNotEmpty ? turnstileSiteKey : recaptchaSiteKey,
+  };
+
   factory XboardSiteConfig.fromJson(Map<String, Object?> json) {
     final suffixes = json['email_whitelist_suffix'];
     return XboardSiteConfig(
@@ -248,6 +265,10 @@ class XboardSiteConfig {
           asBool(json['is_invite_force'], fallback: false) ||
           asBool(json['is_invite'], fallback: true),
       logo: asString(json['logo']),
+      captchaEnabled: asBool(json['is_captcha'], fallback: false),
+      captchaType: asString(json['captcha_type']),
+      turnstileSiteKey: asString(json['turnstile_site_key']),
+      recaptchaSiteKey: asString(json['recaptcha_site_key']),
       appUrl: asString(json['app_url']),
       description: asString(json['app_description']),
       emailSuffixes: [

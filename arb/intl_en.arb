@@ -1312,5 +1312,8 @@
   "storeNoOrders": "No orders yet",
   "tcpPing": "TCPing delays",
   "tcpPingOn": "Switched to TCPing",
-  "tcpPingOff": "Switched to HTTP test"
+  "tcpPingOff": "Switched to HTTP test",
+  "storeForgotPassword": "Forgot password",
+  "storeResetSent": "Reset email sent, check your inbox",
+  "storeFillCaptcha": "Complete the human check first"
 }

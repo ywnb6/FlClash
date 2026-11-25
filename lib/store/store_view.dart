@@ -6,6 +6,7 @@ import 'package:fl_clash/features/features.dart';
 import 'package:fl_clash/providers/action.dart';
 import 'package:fl_clash/store/xboard_client.dart';
 import 'package:fl_clash/store/xboard_models.dart';
+import 'package:fl_clash/store/captcha_view.dart';
 import 'package:fl_clash/store/store_link_sheet.dart';
 import 'package:fl_clash/store/store_orders_sheet.dart';
 import 'package:fl_clash/store/store_payment_sheet.dart';
@@ -519,6 +520,7 @@ class _SignInSheetState extends State<_SignInSheet> {
   int _cooldown = 0;
   Timer? _ticker;
   String? _error;
+  String? _captchaToken;
 
   @override
   void dispose() {
@@ -574,6 +576,33 @@ class _SignInSheetState extends State<_SignInSheet> {
     }
   }
 
+  Future<void> _forgetPassword() async {
+    final email = _email.text.trim();
+    if (email.isEmpty) {
+      setState(() => _error = context.appLocalizations.storeFillEmail);
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await widget.session.forgetPassword(email);
+      if (!mounted) return;
+      setState(() => _busy = false);
+      dialogs.showBanner(
+        context.appLocalizations.storeResetSent,
+        level: BannerLevel.success,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _error = _humanError(error);
+      });
+    }
+  }
+
   Future<void> _submit() async {
     final appLocalizations = context.appLocalizations;
     final email = _email.text.trim();
@@ -595,6 +624,10 @@ class _SignInSheetState extends State<_SignInSheet> {
       setState(() => _error = appLocalizations.storeFillInvite);
       return;
     }
+    if (config.captchaEnabled && (_captchaToken ?? '').isEmpty) {
+      setState(() => _error = appLocalizations.storeFillCaptcha);
+      return;
+    }
     setState(() {
       _busy = true;
       _error = null;
@@ -606,9 +639,14 @@ class _SignInSheetState extends State<_SignInSheet> {
           password: password,
           inviteCode: _invite.text,
           emailCode: _code.text,
+          captchaToken: _captchaToken,
         );
       } else {
-        await widget.session.login(email: email, password: password);
+        await widget.session.login(
+          email: email,
+          password: password,
+          captchaToken: _captchaToken,
+        );
       }
       if (!mounted) return;
       Navigator.of(context).pop(true);
@@ -626,6 +664,7 @@ class _SignInSheetState extends State<_SignInSheet> {
     final appLocalizations = context.appLocalizations;
     final colors = context.colorScheme;
     final config = widget.session.siteConfig;
+    final showCaptcha = config.captchaEnabled && config.captchaSiteKey.isNotEmpty;
     final needCode = _register && config.needEmailVerify;
     final showInvite = _register && config.inviteEnabled;
     final inviteRequired = _register && config.inviteRequired;
@@ -698,6 +737,15 @@ class _SignInSheetState extends State<_SignInSheet> {
                 ),
             ],
           ),
+          if (showCaptcha)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: CaptchaView(
+                siteKey: config.captchaSiteKey,
+                type: config.captchaType,
+                onToken: (token) => setState(() => _captchaToken = token),
+              ),
+            ),
           if (_error != null)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
@@ -733,6 +781,11 @@ class _SignInSheetState extends State<_SignInSheet> {
                   : appLocalizations.storeNoAccount,
             ),
           ),
+          if (!_register)
+            TextButton(
+              onPressed: _busy ? null : _forgetPassword,
+              child: Text(appLocalizations.storeForgotPassword),
+            ),
         ],
       ),
     );

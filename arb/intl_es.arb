@@ -1197,5 +1197,8 @@
   "storeNoOrders": "Sin pedidos",
   "tcpPing": "TCPing",
   "tcpPingOn": "Cambiado a TCPing",
-  "tcpPingOff": "Cambiado a prueba HTTP"
+  "tcpPingOff": "Cambiado a prueba HTTP",
+  "storeForgotPassword": "Olvidé mi contraseña",
+  "storeResetSent": "Correo de restablecimiento enviado",
+  "storeFillCaptcha": "Completa la verificación"
 }

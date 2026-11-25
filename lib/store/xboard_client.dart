@@ -192,11 +192,17 @@ class XboardClient {
   Future<String> login({
     required String email,
     required String password,
+    String? captchaToken,
   }) async {
     final data = await _request(
       '/passport/auth/login',
       method: 'POST',
-      data: {'email': email.trim(), 'password': password},
+      data: {
+        'email': email.trim(),
+        'password': password,
+        if (captchaToken != null && captchaToken.isNotEmpty)
+          'cf-turnstile-response': captchaToken,
+      },
       auth: false,
     );
     final token = _readAuthData(data);
@@ -218,6 +224,7 @@ class XboardClient {
     required String password,
     String? inviteCode,
     String? emailCode,
+    String? captchaToken,
   }) async {
     final data = await _request(
       '/passport/auth/register',
@@ -229,6 +236,8 @@ class XboardClient {
           'invite_code': inviteCode.trim(),
         if (emailCode != null && emailCode.isNotEmpty)
           'email_code': emailCode.trim(),
+        if (captchaToken != null && captchaToken.isNotEmpty)
+          'cf-turnstile-response': captchaToken,
       },
       auth: false,
     );

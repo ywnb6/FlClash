@@ -1197,5 +1197,8 @@
   "storeNoOrders": "暂无订单",
   "tcpPing": "TCPing 测速",
   "tcpPingOn": "已切换为 TCPing 测速",
-  "tcpPingOff": "已切换为 HTTP 测速"
+  "tcpPingOff": "已切换为 HTTP 测速",
+  "storeForgotPassword": "忘记密码",
+  "storeResetSent": "重置邮件已发送，请查收邮箱",
+  "storeFillCaptcha": "请先完成人机验证"
 }
