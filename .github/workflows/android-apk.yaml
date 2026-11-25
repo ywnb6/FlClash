@@ -109,6 +109,13 @@ jobs:
           curl -fsSL --retry 3 -o "$bundle" "https://curl.se/ca/$CA_BUNDLE"
           echo "$CA_BUNDLE_SHA256  $bundle" | sha256sum -c -
 
+      # `flutter test` runs every build hook for the host first, so the GTK
+      # headers the Linux slice of rust_api needs are installed here.
+      - name: Install test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev
+
       - name: Test the store
         run: flutter test test/store
 
