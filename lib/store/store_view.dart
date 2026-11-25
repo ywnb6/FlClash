@@ -506,21 +506,22 @@ Future<bool> showStoreSignInSheet(
 }) async {
   final result = await showNestedSheet<bool>(
     context,
-    builder: (_) => _SignInSheet(session: session),
+    builder: (_) => StoreAuthSheet(session: session),
   );
   return result ?? false;
 }
 
-class _SignInSheet extends StatefulWidget {
-  const _SignInSheet({required this.session});
+/// Visible so a widget test can drive the three forms without a live panel.
+class StoreAuthSheet extends StatefulWidget {
+  const StoreAuthSheet({super.key, required this.session});
 
   final XboardSession session;
 
   @override
-  State<_SignInSheet> createState() => _SignInSheetState();
+  State<StoreAuthSheet> createState() => StoreAuthSheetState();
 }
 
-class _SignInSheetState extends State<_SignInSheet> {
+class StoreAuthSheetState extends State<StoreAuthSheet> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _invite = TextEditingController();

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/store/xboard_client.dart';
 import 'package:fl_clash/store/xboard_models.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Holds the shop session: the panel address, the auth token and the account
@@ -39,6 +40,14 @@ class XboardSession {
       _siteName.isNotEmpty ? _siteName : XboardClient.defaultSiteName;
 
   XboardSiteConfig get siteConfig => _siteConfig;
+
+  /// Lets a test stand in for what the panel publishes, so the forms can be
+  /// driven without a network round trip.
+  @visibleForTesting
+  void useSiteConfig(XboardSiteConfig config) {
+    _siteConfig = config;
+    _notify();
+  }
 
   String? get token => _token;
 
