@@ -109,6 +109,11 @@ jobs:
           curl -fsSL --retry 3 -o "$bundle" "https://curl.se/ca/$CA_BUNDLE"
           echo "$CA_BUNDLE_SHA256  $bundle" | sha256sum -c -
 
+      # Catches a mistake in a file the store tests do not compile, before the
+      # twenty minutes the packaging step would take to reach it.
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
       # `flutter test` runs every build hook for the host first, so the GTK
       # headers the Linux slice of rust_api needs are installed here.
       - name: Install test dependencies
@@ -118,9 +123,6 @@ jobs:
 
       - name: Test the store
         run: flutter test test/store
-
-      - name: Analyze
-        run: flutter analyze --no-fatal-infos || true
 
       # The tag this run publishes is decided before packaging, so the version
       # inside the APK matches the release the update check compares against.

@@ -533,7 +533,6 @@ class _SignInSheetState extends State<_SignInSheet> {
   Timer? _ticker;
   String? _error;
   String? _captchaToken;
-  XboardOrderRecord? _pendingOrder;
 
   @override
   void dispose() {
@@ -872,6 +871,7 @@ class _PlanSheet extends StatefulWidget {
 
 class _PlanSheetState extends State<_PlanSheet> {
   final _coupon = TextEditingController();
+  XboardOrderRecord? _pendingOrder;
   XboardPlanPeriod? _period;
   List<XboardPaymentMethod> _methods = const [];
   int? _paymentId;
