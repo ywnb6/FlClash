@@ -699,7 +699,11 @@ class _SignInSheetState extends State<_SignInSheet> {
     final colors = context.colorScheme;
     final mode = storeAuthMode(register: _register, reset: _reset);
     final config = widget.session.siteConfig;
-    final showCaptcha = config.captchaEnabled && config.captchaSiteKey.isNotEmpty;
+    // The panel's switch is about registration only; signing in and resetting
+    // a password take no human check.
+    final showCaptcha = mode.showsCaptchaFor(
+      panelAsks: config.captchaEnabled && config.captchaSiteKey.isNotEmpty,
+    );
     final needCode = mode.showsEmailCodeFor(
       panelNeedsCode: config.needEmailVerify,
     );

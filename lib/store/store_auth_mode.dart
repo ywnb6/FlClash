@@ -24,6 +24,11 @@ extension StoreAuthModeSwitch on StoreAuthMode {
   /// The reset form reuses the field for the new password.
   bool get showsPassword => true;
 
+  /// The panel's human check guards registration alone, so signing in and
+  /// resetting a password never draw it.
+  bool showsCaptchaFor({required bool panelAsks}) =>
+      panelAsks && this == StoreAuthMode.register;
+
   /// Registration may follow the panel; a reset always needs the mailed code.
   bool showsEmailCodeFor({required bool panelNeedsCode}) =>
       this == StoreAuthMode.reset ||
