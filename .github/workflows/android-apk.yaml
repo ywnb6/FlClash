@@ -122,7 +122,18 @@ jobs:
           sudo apt-get install -y libgtk-3-dev
 
       - name: Test the store
-        run: flutter test test/store
+        run: flutter test test/store --reporter expanded 2>&1 | tee /tmp/store-test.log
+
+      # The job log needs a scope the token lacks, so the test output is also
+      # published as an artifact that anyone with repository read can fetch.
+      - name: Publish the test output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: store-test-log
+          path: /tmp/store-test.log
+          if-no-files-found: ignore
+          overwrite: true
 
       # The tag this run publishes is decided before packaging, so the version
       # inside the APK matches the release the update check compares against.
