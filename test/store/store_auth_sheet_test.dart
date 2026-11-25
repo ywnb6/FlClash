@@ -1,3 +1,4 @@
+import 'package:fl_clash/common/app_localizations.dart';
 import 'package:fl_clash/store/store_view.dart';
 import 'package:fl_clash/store/xboard_models.dart';
 import 'package:fl_clash/store/xboard_session.dart';
@@ -6,72 +7,71 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/test_app.dart';
 
-/// The panel's human check is drawn inside a WebView, which a widget test
-/// cannot host, so the check is asserted through the modes that decide it.
-/// What matters here is that the three forms show the fields they should and
-/// that only registration asks for the panel's check.
+/// The three account forms are one sheet, so these tests drive it the way a
+/// user does and assert what each face offers. Texts come from the generated
+/// localizations rather than literals, so a translation change cannot make a
+/// passing screen look broken.
 void main() {
   late XboardSession session;
+  late AppLocalizations l;
 
   setUp(() {
     session = XboardSession(null);
+    l = loadAppLocalizations(const Locale('zh'));
   });
 
   Future<void> pumpSheet(WidgetTester tester) async {
     await tester.pumpWidget(
-      TestApp(
-        child: Builder(
-          builder: (context) => StoreAuthSheet(session: session),
-        ),
-      ),
+      TestApp(locale: const Locale('zh'), child: StoreAuthSheet(session: session)),
     );
     await tester.pumpAndSettle();
   }
 
-  testWidgets('signing in offers neither the mailed code nor the invite code', (
+  testWidgets('signing in asks for the email and the password alone', (
     tester,
   ) async {
     await pumpSheet(tester);
 
-    expect(find.text('邮箱'), findsOneWidget);
-    expect(find.text('密码'), findsOneWidget);
-    expect(find.text('邮箱验证码'), findsNothing);
-    expect(find.textContaining('邀请码'), findsNothing);
-    expect(find.text('忘记密码'), findsOneWidget);
+    expect(find.text(l.storeEmail), findsOneWidget);
+    expect(find.text(l.storePassword), findsOneWidget);
+    expect(find.text(l.storeEmailCode), findsNothing);
+    expect(find.text(l.storeInviteCode), findsNothing);
+    expect(find.text(l.storeForgotPassword), findsOneWidget);
   });
 
-  testWidgets('registration offers the mailed code and the invite code', (
+  testWidgets('registration adds the mailed code and the invite code', (
     tester,
   ) async {
     await pumpSheet(tester);
 
-    await tester.tap(find.text('没有账号，去注册'));
+    await tester.tap(find.text(l.storeNoAccount));
     await tester.pumpAndSettle();
 
-    expect(find.text('邮箱验证码'), findsOneWidget);
-    expect(find.textContaining('邀请码'), findsOneWidget);
-    expect(find.text('忘记密码'), findsNothing);
+    expect(find.text(l.storeEmailCode), findsOneWidget);
+    expect(find.text(l.storeInviteCode), findsOneWidget);
+    expect(find.text(l.storeForgotPassword), findsNothing);
   });
 
-  testWidgets('the reset form keeps the code field and returns to sign in', (
+  testWidgets('the reset form asks for the code and returns to sign in', (
     tester,
   ) async {
     await pumpSheet(tester);
 
-    await tester.tap(find.text('忘记密码'));
+    await tester.tap(find.text(l.storeForgotPassword));
     await tester.pumpAndSettle();
 
-    expect(find.text('邮箱验证码'), findsOneWidget);
-    expect(find.text('重置密码'), findsOneWidget);
+    expect(find.text(l.storeEmailCode), findsOneWidget);
+    expect(find.text(l.storeResetPassword), findsOneWidget);
+    expect(find.text(l.storeNoAccount), findsNothing);
 
-    await tester.tap(find.text('返回登录'));
+    await tester.tap(find.text(l.storeBackToSignIn));
     await tester.pumpAndSettle();
 
-    expect(find.text('邮箱验证码'), findsNothing);
-    expect(find.text('忘记密码'), findsOneWidget);
+    expect(find.text(l.storeEmailCode), findsNothing);
+    expect(find.text(l.storeForgotPassword), findsOneWidget);
   });
 
-  testWidgets('signing in is not blocked by the panel human check', (
+  testWidgets('a panel that checks for a human does not block signing in', (
     tester,
   ) async {
     session.useSiteConfig(
@@ -85,23 +85,9 @@ void main() {
 
     await tester.enterText(find.byType(EditableText).first, 'a@b.com');
     await tester.enterText(find.byType(EditableText).last, 'password123');
-    await tester.tap(find.text('登录'));
-    await tester.pumpAndSettle();
+    await tester.tap(find.text(l.storeSignIn));
+    await tester.pump(const Duration(milliseconds: 200));
 
-    // The submission goes to the panel; what it must not do is stop at the
-    // human check, which only registration carries.
-    expect(find.text('请先完成人机验证'), findsNothing);
-  });
-
-  testWidgets('the reset form goes back to sign in, never to registration', (
-    tester,
-  ) async {
-    await pumpSheet(tester);
-
-    await tester.tap(find.text('忘记密码'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('没有账号，去注册'), findsNothing);
-    expect(find.text('返回登录'), findsOneWidget);
+    expect(find.text(l.storeFillCaptcha), findsNothing);
   });
 }
