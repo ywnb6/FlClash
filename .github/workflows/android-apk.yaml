@@ -121,12 +121,9 @@ jobs:
           patch=$(echo "$version" | cut -d. -f3)
           # Only published releases count, so the version always moves forward
           # from what the app can actually see.
-          highest=$(gh release list --limit 200 --json tagName \
-            --jq '.[].tagName' 2>/dev/null | grep -E "^v${base}\.[0-9]+$" \
-            | sed "s/^v${base}\.//" | sort -n | tail -1 || true)
-          candidate=$(( ${highest:-0} > patch ? ${highest:-0} : patch ))
-          next=$(( candidate + 1 ))
-          echo "version=${base}.${next}" >> "$GITHUB_OUTPUT"
+          # The version comes from pubspec, so a release carries exactly the
+          # number the build reports about itself.
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
           echo "code=$(date +%Y%m%d%H)" >> "$GITHUB_OUTPUT"
 
       - name: Stamp the version into the build
