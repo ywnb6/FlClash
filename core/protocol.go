@@ -167,7 +167,6 @@ type UpdateParams struct {
 	ExternalController *string            `json:"external-controller"`
 	Secret             *string            `json:"secret"`
 	UnifiedDelay       *bool              `json:"unified-delay"`
-	TCPing             *bool              `json:"tcping"`
 	Authentication     *[]string          `json:"authentication"`
 	GeoAutoUpdate      *bool              `json:"geo-auto-update"`
 	GeoUpdateInterval  *int               `json:"geo-update-interval"`

@@ -202,10 +202,6 @@ func updateConfig(params *UpdateParams) error {
 		general.UnifiedDelay = *params.UnifiedDelay
 		adapter.UnifiedDelay.Store(general.UnifiedDelay)
 	}
-	if params.TCPing != nil {
-		general.TCPing = *params.TCPing
-		adapter.TCPing.Store(general.TCPing)
-	}
 	routeChange := routeUnchanged
 	if params.Mode != nil {
 		if general.Mode != *params.Mode {
