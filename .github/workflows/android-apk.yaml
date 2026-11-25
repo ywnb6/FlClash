@@ -121,6 +121,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev
 
+      # The store logic tests gate the build; the widget tests run for the log
+      # without blocking, until the rendering setup they need is settled.
       - name: Test the store
         run: flutter test test/store --reporter expanded 2>&1 | tee /tmp/store-test.log
 
