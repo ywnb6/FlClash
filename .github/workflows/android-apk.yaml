@@ -109,6 +109,9 @@ jobs:
           curl -fsSL --retry 3 -o "$bundle" "https://curl.se/ca/$CA_BUNDLE"
           echo "$CA_BUNDLE_SHA256  $bundle" | sha256sum -c -
 
+      - name: Test the store
+        run: flutter test test/store
+
       - name: Analyze
         run: flutter analyze --no-fatal-infos || true
 

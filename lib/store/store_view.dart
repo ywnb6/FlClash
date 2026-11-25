@@ -7,6 +7,7 @@ import 'package:fl_clash/providers/action.dart';
 import 'package:fl_clash/store/xboard_client.dart';
 import 'package:fl_clash/store/xboard_models.dart';
 import 'package:fl_clash/store/captcha_view.dart';
+import 'package:fl_clash/store/store_auth_mode.dart';
 import 'package:fl_clash/store/store_link_sheet.dart';
 import 'package:fl_clash/store/store_orders_sheet.dart';
 import 'package:fl_clash/store/store_payment_sheet.dart';
@@ -685,11 +686,14 @@ class _SignInSheetState extends State<_SignInSheet> {
   Widget build(BuildContext context) {
     final appLocalizations = context.appLocalizations;
     final colors = context.colorScheme;
+    final mode = storeAuthMode(register: _register, reset: _reset);
     final config = widget.session.siteConfig;
     final showCaptcha = config.captchaEnabled && config.captchaSiteKey.isNotEmpty;
-    final needCode = (_register || _reset) && config.needEmailVerify;
-    final showInvite = _register && config.inviteEnabled;
-    final inviteRequired = _register && config.inviteRequired;
+    final needCode = mode.showsEmailCodeFor(
+      panelNeedsCode: config.needEmailVerify,
+    );
+    final showInvite = mode.showsInvite && config.inviteEnabled;
+    final inviteRequired = mode.showsInvite && config.inviteRequired;
     return Scaffold(
       title: _reset
           ? appLocalizations.storeForgotPassword
@@ -800,16 +804,20 @@ class _SignInSheetState extends State<_SignInSheet> {
             onPressed: _busy
                 ? null
                 : () => setState(() {
-                    _register = !_register;
+                    final next = mode.toggled();
+                    _reset = next == StoreAuthMode.reset;
+                    _register = next == StoreAuthMode.register;
                     _error = null;
                   }),
             child: Text(
-              _register
+              _reset
+                  ? appLocalizations.storeBackToSignIn
+                  : _register
                   ? appLocalizations.storeHaveAccount
                   : appLocalizations.storeNoAccount,
             ),
           ),
-          if (!_register && !_reset)
+          if (mode.showsForgotPassword)
             TextButton(
               onPressed: _busy
                   ? null
