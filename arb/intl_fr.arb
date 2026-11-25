@@ -1200,5 +1200,8 @@
   "tcpPingOff": "Passé en test HTTP",
   "storeForgotPassword": "Mot de passe oublié",
   "storeResetSent": "E-mail de réinitialisation envoyé",
-  "storeFillCaptcha": "Complétez la vérification"
+  "storeFillCaptcha": "Complétez la vérification",
+  "storePendingOrder": "Une commande est en attente",
+  "storeContinuePay": "Continuer le paiement",
+  "storePickPayMethod": "Choisissez un moyen de paiement"
 }

@@ -1200,5 +1200,8 @@
   "tcpPingOff": "Переключено на HTTP",
   "storeForgotPassword": "Забыли пароль",
   "storeResetSent": "Письмо для сброса отправлено",
-  "storeFillCaptcha": "Пройдите проверку"
+  "storeFillCaptcha": "Пройдите проверку",
+  "storePendingOrder": "Есть неоплаченный заказ",
+  "storeContinuePay": "Оплатить его",
+  "storePickPayMethod": "Выберите способ оплаты"
 }

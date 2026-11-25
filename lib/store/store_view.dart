@@ -903,6 +903,69 @@ class _PlanSheetState extends State<_PlanSheet> {
       }
     } catch (error) {
       if (!mounted) return;
+      setState(() => _busy = false);
+      final pending = await _pendingOrderFor(error);
+      if (!mounted) return;
+      if (pending != null) {
+        await _resumePendingOrder(pending);
+        return;
+      }
+      setState(() => _error = _humanError(error));
+    }
+  }
+
+  /// The panel refuses a new order while one is unpaid, and its message says
+  /// so; the order itself is what the user wants to finish paying.
+  Future<XboardOrderRecord?> _pendingOrderFor(Object error) async {
+    if (error is! XboardException) return null;
+    final message = error.message;
+    if (!message.contains('未付款') && !message.contains('开通中')) return null;
+    try {
+      final orders = await widget.session.fetchOrders();
+      for (final order in orders) {
+        if (order.isPending) return order;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  Future<void> _resumePendingOrder(XboardOrderRecord order) async {
+    final resume = await showStoreResumeDialog(
+      context,
+      order: order,
+      locale: Localizations.localeOf(context).languageCode,
+    );
+    if (!mounted) return;
+    if (resume != true) {
+      setState(() => _error = context.appLocalizations.storeOrderCancelled);
+      return;
+    }
+    final paymentId = _paymentId;
+    if (paymentId == null) {
+      setState(() => _error = context.appLocalizations.storePickPayMethod);
+      return;
+    }
+    setState(() => _busy = true);
+    try {
+      final payment = await widget.session.pay(
+        tradeNo: order.tradeNo,
+        methodId: paymentId,
+      );
+      if (!mounted) return;
+      setState(() => _busy = false);
+      await showStorePaymentSheet(
+        context,
+        payment: payment,
+        session: widget.session,
+        tradeNo: order.tradeNo,
+      );
+      if (!mounted) return;
+      await widget.session.refreshUserInfo();
+      if (!mounted) return;
+      final route = ModalRoute.of(context);
+      if (route?.isActive ?? false) Navigator.of(context).pop(true);
+    } catch (error) {
+      if (!mounted) return;
       setState(() {
         _busy = false;
         _error = _humanError(error);
@@ -1156,6 +1219,65 @@ class _SettingsSheetState extends State<_SettingsSheet> {
           FilledButton(
             onPressed: _save,
             child: Text(appLocalizations.storeSave),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Asks whether to finish paying the order the panel is still holding, rather
+/// than the one the user just tried to create.
+Future<bool?> showStoreResumeDialog(
+  BuildContext context, {
+  required XboardOrderRecord order,
+  required String locale,
+}) {
+  return dialogs.showCommonDialog<bool>(
+    context: context,
+    child: _ResumeDialog(order: order, locale: locale),
+  );
+}
+
+class _ResumeDialog extends StatelessWidget {
+  const _ResumeDialog({required this.order, required this.locale});
+
+  final XboardOrderRecord order;
+  final String locale;
+
+  @override
+  Widget build(BuildContext context) {
+    final appLocalizations = context.appLocalizations;
+    final colors = context.colorScheme;
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            appLocalizations.storePendingOrder,
+            textAlign: TextAlign.center,
+            style: AppTextStyle.title3.of(context, emphasized: true),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '${order.planName} · ${order.periodLabel(locale)}\n'
+            '${order.statusLabel(locale)} · ${formatPrice(order.totalAmount)}',
+            textAlign: TextAlign.center,
+            style: AppTextStyle.body
+                .of(context)
+                .copyWith(color: colors.onSurfaceVariant),
+          ),
+          const SizedBox(height: 20),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(appLocalizations.storeContinuePay),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(appLocalizations.cancel),
           ),
         ],
       ),

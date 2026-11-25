@@ -1200,5 +1200,8 @@
   "tcpPingOff": "已切换为 HTTP 测速",
   "storeForgotPassword": "忘记密码",
   "storeResetSent": "重置邮件已发送，请查收邮箱",
-  "storeFillCaptcha": "请先完成人机验证"
+  "storeFillCaptcha": "请先完成人机验证",
+  "storePendingOrder": "有未完成的订单",
+  "storeContinuePay": "继续支付该订单",
+  "storePickPayMethod": "请先选择支付方式"
 }

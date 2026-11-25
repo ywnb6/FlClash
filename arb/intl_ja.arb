@@ -1200,5 +1200,8 @@
   "tcpPingOff": "HTTPテストに切り替えました",
   "storeForgotPassword": "パスワードを忘れた",
   "storeResetSent": "リセットメールを送信しました",
-  "storeFillCaptcha": "認証を完了してください"
+  "storeFillCaptcha": "認証を完了してください",
+  "storePendingOrder": "未払いの注文があります",
+  "storeContinuePay": "この注文を支払う",
+  "storePickPayMethod": "支払い方法を選択してください"
 }

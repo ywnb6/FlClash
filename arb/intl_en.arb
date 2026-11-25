@@ -1315,5 +1315,8 @@
   "tcpPingOff": "Switched to HTTP test",
   "storeForgotPassword": "Forgot password",
   "storeResetSent": "Reset email sent, check your inbox",
-  "storeFillCaptcha": "Complete the human check first"
+  "storeFillCaptcha": "Complete the human check first",
+  "storePendingOrder": "An unpaid order is open",
+  "storeContinuePay": "Continue paying it",
+  "storePickPayMethod": "Choose a payment method first"
 }

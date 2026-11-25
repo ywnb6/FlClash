@@ -1200,5 +1200,8 @@
   "tcpPingOff": "HTTP 테스트로 전환됨",
   "storeForgotPassword": "비밀번호 찾기",
   "storeResetSent": "재설정 메일을 보냈습니다",
-  "storeFillCaptcha": "인증을 완료하세요"
+  "storeFillCaptcha": "인증을 완료하세요",
+  "storePendingOrder": "미결제 주문이 있습니다",
+  "storeContinuePay": "이 주문 결제하기",
+  "storePickPayMethod": "결제 수단을 선택하세요"
 }
