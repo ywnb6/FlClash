@@ -21,8 +21,8 @@ extension StoreAuthModeSwitch on StoreAuthMode {
 
   bool get showsForgotPassword => this == StoreAuthMode.signIn;
 
-  bool get showsPassword =>
-      this == StoreAuthMode.signIn || this == StoreAuthMode.register;
+  /// The reset form reuses the field for the new password.
+  bool get showsPassword => true;
 
   /// Registration may follow the panel; a reset always needs the mailed code.
   bool showsEmailCodeFor({required bool panelNeedsCode}) =>
