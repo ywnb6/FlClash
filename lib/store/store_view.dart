@@ -499,15 +499,20 @@ void closeStoreRoute<T>(BuildContext context, [T? result]) {
   }
 }
 
+/// Opens the sheet and reports whether the session ended up signed in. The
+/// sheet is raised from a tab page, so a pop result would be delivered to the
+/// wrong route; the session itself is what the caller reacts to.
 Future<bool> showStoreSignInSheet(
   BuildContext context, {
   required XboardSession session,
 }) async {
-  final result = await showNestedSheet<bool>(
+  await showNestedSheet<void>(
     context,
     builder: (_) => StoreAuthSheet(session: session),
   );
-  return result ?? false;
+  // The route is gone; one frame lets the tab rebuild against the new session.
+  await Future<void>.delayed(Duration.zero);
+  return session.isSignedIn;
 }
 
 /// Visible so a widget test can drive the three forms without a live panel.
@@ -675,7 +680,8 @@ class StoreAuthSheetState extends State<StoreAuthSheet> {
         );
       }
       if (!mounted) return;
-      closeStoreRoute(context, true);
+      setState(() => _busy = false);
+      closeStoreRoute(context);
     } catch (error) {
       if (!mounted) return;
       setState(() {

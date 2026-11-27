@@ -13,10 +13,19 @@ val localProperties = Properties().apply {
     }
 }
 
+// Flutter rewrites android/local.properties on every build, so the signature
+// lives in its own file that nothing else touches.
+val keyProperties = Properties().apply {
+    val keyPropertiesFile = file("key.properties")
+    if (keyPropertiesFile.exists()) {
+        keyPropertiesFile.inputStream().use { load(it) }
+    }
+}
+
 val releaseStoreFile = file("keystore.jks")
-val releaseStorePassword = localProperties.getProperty("storePassword")
-val releaseKeyAlias = localProperties.getProperty("keyAlias")
-val releaseKeyPassword = localProperties.getProperty("keyPassword")
+val releaseStorePassword = keyProperties.getProperty("storePassword")
+val releaseKeyAlias = keyProperties.getProperty("keyAlias")
+val releaseKeyPassword = keyProperties.getProperty("keyPassword")
 val hasReleaseSigning = releaseStoreFile.exists() &&
     releaseStorePassword != null &&
     releaseKeyAlias != null &&

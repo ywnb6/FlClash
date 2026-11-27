@@ -107,7 +107,7 @@ jobs:
             echo "storePassword=flclash2026"
             echo "keyAlias=flclash"
             echo "keyPassword=flclash2026"
-          } >> android/local.properties
+          } > android/app/key.properties
 
       - name: Fetch CA certificates
         shell: bash
