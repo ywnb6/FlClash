@@ -34,6 +34,7 @@ class _StoreViewState extends ConsumerState<StoreView> {
   bool _signedIn = false;
 
   Timer? _syncTimer;
+  StreamSubscription<void>? _sessionSub;
 
   @override
   void initState() {
@@ -48,6 +49,7 @@ class _StoreViewState extends ConsumerState<StoreView> {
   @override
   void dispose() {
     _syncTimer?.cancel();
+    _sessionSub?.cancel();
     super.dispose();
   }
 
@@ -55,6 +57,14 @@ class _StoreViewState extends ConsumerState<StoreView> {
     final session = await xboardSession();
     if (!mounted) return;
     setState(() => _session = session);
+    // The sheet reports the session rather than a pop result, so the page
+    // follows the session's own stream and repaints whenever sign-in state or
+    // the profile changes.
+    _sessionSub?.cancel();
+    _sessionSub = session.changes.listen((_) {
+      if (!mounted) return;
+      setState(() => _signedIn = session.isSignedIn);
+    });
     await _refresh(force: true);
   }
 
@@ -95,8 +105,6 @@ class _StoreViewState extends ConsumerState<StoreView> {
     if (session == null) return;
     await showStoreSignInSheet(context, session: session);
     if (!mounted) return;
-    // The sheet reports the session, not its own pop result, so the page can
-    // flip to the signed-in view without waiting on a refresh.
     setState(() => _signedIn = session.isSignedIn);
     if (!session.isSignedIn) return;
     await _refresh(force: true);
@@ -695,10 +703,14 @@ class StoreAuthSheetState extends State<StoreAuthSheet> {
       closeStoreRoute(context);
     } catch (error) {
       if (!mounted) return;
+      final message = _humanError(error);
       setState(() {
         _busy = false;
-        _error = _humanError(error);
+        _error = message;
       });
+      // The text sits below the form, which the keyboard can cover; a banner
+      // makes sure a failed attempt is visible without scrolling.
+      dialogs.showBanner(message, level: BannerLevel.error);
     }
   }
 
@@ -787,13 +799,18 @@ class StoreAuthSheetState extends State<StoreAuthSheet> {
             ],
           ),
           if (_error != null)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: colors.errorContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Text(
                 _error!,
                 style: AppTextStyle.footnote
                     .of(context)
-                    .copyWith(color: colors.error),
+                    .copyWith(color: colors.onErrorContainer),
               ),
             ),
           const SizedBox(height: 12),
