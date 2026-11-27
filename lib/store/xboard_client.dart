@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/store/xboard_models.dart';
-import 'package:fl_clash/state.dart';
 import 'package:fl_clash/store/xboard_parse.dart';
 
 class XboardException implements Exception {
@@ -28,7 +27,10 @@ class XboardClient {
 
   /// What the panel sees as the client; it decides the config format a
   /// subscription is served in.
-  static String get defaultUserAgent => 'FlClash/${globalState.packageInfo.version}';
+  /// The panel reads this on every call, so it stays a plain literal: the
+  /// package info is a late field and reading it before startup finishes would
+  /// throw where a request is being built.
+  static const defaultUserAgent = 'FlClash/0.9.4';
 
   static String _normalize(String value) {
     var url = value.trim();
