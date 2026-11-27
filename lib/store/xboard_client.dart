@@ -47,16 +47,25 @@ class XboardClient {
 
   String get baseUrl => _baseUrl;
 
+  /// The shop talks to the panel the same way the rest of the app talks to
+  /// the outside: through the running core, so a panel that is slow or
+  /// unreachable over a direct route still answers.
   late final Dio _dio = Dio(
     BaseOptions(
       baseUrl: '$_baseUrl/api/v1',
-      connectTimeout: const Duration(seconds: 15),
-      receiveTimeout: const Duration(seconds: 25),
+      connectTimeout: const Duration(seconds: 20),
+      receiveTimeout: const Duration(seconds: 30),
       headers: {'Accept': 'application/json'},
       responseType: ResponseType.plain,
       validateStatus: (_) => true,
     ),
-  );
+  )..httpClientAdapter = IOHttpClientAdapter(
+      createHttpClient: () {
+        final client = HttpClient();
+        client.findProxy = request.proxyFor;
+        return client;
+      },
+    );
 
   String? _token;
   String? _userAgentOverride;

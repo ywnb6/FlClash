@@ -52,6 +52,10 @@ class Request {
     );
   }
 
+  /// The proxy rule for a request, so a caller building its own HttpClient
+  /// reaches the outside through the running core like the rest of the app.
+  String proxyFor(Uri uri) => _findProxy(uri);
+
   String _findProxy(Uri uri) {
     final read = _read;
     if (read == null) {
