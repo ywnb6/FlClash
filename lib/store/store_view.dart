@@ -166,23 +166,23 @@ class _StoreViewState extends ConsumerState<StoreView> {
       );
       return;
     }
-    final link = await showStoreLinkSheet(
-      context,
-      url: url,
-      siteName: session.siteName,
-    );
-    if (!mounted || link == null || link.isEmpty) return;
     final planName = session.userInfo?.planName?.trim();
     final label = planName == null || planName.isEmpty
         ? session.siteName
         : planName;
-    await ref
-        .read(profilesActionProvider.notifier)
-        .addProfileFromLink(link, label: label);
-    if (!mounted) return;
-    dialogs.showBanner(
-      currentAppLocalizations.storeImported,
-      level: BannerLevel.success,
+    await showStoreLinkSheet(
+      context,
+      url: url,
+      siteName: session.siteName,
+      onConfirm: (link) async {
+        await ref
+            .read(profilesActionProvider.notifier)
+            .addProfileFromLink(link, label: label);
+        dialogs.showBanner(
+          currentAppLocalizations.storeImported,
+          level: BannerLevel.success,
+        );
+      },
     );
   }
 

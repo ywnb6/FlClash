@@ -9,22 +9,35 @@ import 'package:prism_ui/prism_ui.dart';
 
 /// Shows the subscription link the panel issued, so it can be copied, edited
 /// or pasted over before the profile is created from it.
-Future<String?> showStoreLinkSheet(
+/// Shows the link and hands whatever the user confirms straight to
+/// [onConfirm]. The sheet is raised from the shop tab, which is not a sheet
+/// page, so the result would otherwise be returned to the wrong route.
+Future<void> showStoreLinkSheet(
   BuildContext context, {
   required String url,
   required String siteName,
-}) {
-  return showNestedSheet<String>(
+  required Future<void> Function(String link) onConfirm,
+}) async {
+  await showNestedSheet<void>(
     context,
-    builder: (_) => _LinkSheet(url: url, siteName: siteName),
+    builder: (_) => _LinkSheet(
+      url: url,
+      siteName: siteName,
+      onConfirm: onConfirm,
+    ),
   );
 }
 
 class _LinkSheet extends StatefulWidget {
-  const _LinkSheet({required this.url, required this.siteName});
+  const _LinkSheet({
+    required this.url,
+    required this.siteName,
+    required this.onConfirm,
+  });
 
   final String url;
   final String siteName;
+  final Future<void> Function(String link) onConfirm;
 
   @override
   State<_LinkSheet> createState() => _LinkSheetState();
@@ -45,11 +58,12 @@ class _LinkSheetState extends State<_LinkSheet> {
     dialogs.showBanner(currentAppLocalizations.storeLinkCopied);
   }
 
-  void _confirm() {
+  Future<void> _confirm() async {
     final link = _controller.text.trim();
     if (link.isEmpty) return;
     final navigator = Navigator.of(context);
-    if (navigator.canPop()) navigator.pop(link);
+    if (navigator.canPop()) navigator.pop();
+    await widget.onConfirm(link);
   }
 
   @override
