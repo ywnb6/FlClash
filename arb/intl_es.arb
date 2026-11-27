@@ -1207,5 +1207,6 @@
   "storeResetPassword": "Restablecer contraseña",
   "storeBackToSignIn": "Volver al inicio",
   "storePasswordTooShort": "Al menos 8 caracteres",
-  "storeResetDone": "Contraseña restablecida"
+  "storeResetDone": "Contraseña restablecida",
+  "storeSignedIn": "Sesión iniciada"
 }

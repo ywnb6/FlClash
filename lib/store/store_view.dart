@@ -512,7 +512,9 @@ class _PlanRow extends StatelessWidget {
 /// Closes the current route only while a route below it exists; a sheet stack
 /// that already popped must not take the page with it.
 void closeStoreRoute<T>(BuildContext context, [T? result]) {
-  final navigator = Navigator.of(context);
+  // The shop is a tab, so its sheets live on the root navigator; popping the
+  // nearest one would leave the sheet on screen after a successful sign-in.
+  final navigator = Navigator.of(context, rootNavigator: true);
   if (navigator.canPop()) {
     navigator.pop(result);
   }
@@ -700,6 +702,10 @@ class StoreAuthSheetState extends State<StoreAuthSheet> {
       }
       if (!mounted) return;
       setState(() => _busy = false);
+      dialogs.showBanner(
+        appLocalizations.storeSignedIn,
+        level: BannerLevel.success,
+      );
       closeStoreRoute(context);
     } catch (error) {
       if (!mounted) return;

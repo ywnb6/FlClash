@@ -1322,5 +1322,6 @@
   "storeResetPassword": "Reset password",
   "storeBackToSignIn": "Back to sign in",
   "storePasswordTooShort": "Use at least 8 characters",
-  "storeResetDone": "Password reset, sign in with the new one"
+  "storeResetDone": "Password reset, sign in with the new one",
+  "storeSignedIn": "Signed in"
 }

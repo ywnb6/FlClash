@@ -1207,5 +1207,6 @@
   "storeResetPassword": "Réinitialiser",
   "storeBackToSignIn": "Retour à la connexion",
   "storePasswordTooShort": "Au moins 8 caractères",
-  "storeResetDone": "Mot de passe réinitialisé"
+  "storeResetDone": "Mot de passe réinitialisé",
+  "storeSignedIn": "Connecté"
 }

@@ -1207,5 +1207,6 @@
   "storeResetPassword": "Сбросить пароль",
   "storeBackToSignIn": "Вернуться к входу",
   "storePasswordTooShort": "Не менее 8 символов",
-  "storeResetDone": "Пароль сброшен"
+  "storeResetDone": "Пароль сброшен",
+  "storeSignedIn": "Вы вошли"
 }

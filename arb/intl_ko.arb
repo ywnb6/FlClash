@@ -1207,5 +1207,6 @@
   "storeResetPassword": "비밀번호 재설정",
   "storeBackToSignIn": "로그인으로 돌아가기",
   "storePasswordTooShort": "8자 이상 입력하세요",
-  "storeResetDone": "비밀번호가 재설정되었습니다"
+  "storeResetDone": "비밀번호가 재설정되었습니다",
+  "storeSignedIn": "로그인됨"
 }

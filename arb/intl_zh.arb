@@ -1207,5 +1207,6 @@
   "storeResetPassword": "重置密码",
   "storeBackToSignIn": "返回登录",
   "storePasswordTooShort": "密码至少 8 位",
-  "storeResetDone": "密码已重置，请用新密码登录"
+  "storeResetDone": "密码已重置，请用新密码登录",
+  "storeSignedIn": "登录成功"
 }
