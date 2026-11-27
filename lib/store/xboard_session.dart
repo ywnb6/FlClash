@@ -156,7 +156,13 @@ class XboardSession {
         captchaToken: captchaToken,
       );
       await _setToken(token);
-      _userInfo = await _client.fetchUserInfo();
+      // The token is what proves the sign-in; a profile fetch that fails must
+      // not turn a successful login back into an error the user has to retry.
+      try {
+        _userInfo = await _client.fetchUserInfo();
+      } catch (_) {
+        _userInfo = null;
+      }
     });
   }
 

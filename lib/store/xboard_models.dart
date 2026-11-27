@@ -130,6 +130,21 @@ class XboardUserInfo {
     required this.banned,
   });
 
+  /// Stands in while the profile has not arrived yet, so the account card can
+  /// still show a signed-in shell instead of nothing.
+  const XboardUserInfo.empty()
+    : email = '',
+      balance = 0,
+      commissionBalance = 0,
+      transferEnable = 0,
+      upload = 0,
+      download = 0,
+      expiredAt = null,
+      subscribeUrl = '',
+      planName = null,
+      discount = null,
+      banned = 0;
+
   final String email;
   final int balance;
   final int commissionBalance;

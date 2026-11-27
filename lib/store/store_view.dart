@@ -79,8 +79,12 @@ class _StoreViewState extends ConsumerState<StoreView> {
       });
     } catch (error) {
       if (!mounted) return;
+      // A failed plan or site load must not undo a sign-in that already
+      // succeeded, so the session still decides what the page shows.
       setState(() {
         _error = _humanError(error);
+        _signedIn = session.isSignedIn;
+        _plans = session.plans;
         _loading = false;
       });
     }
@@ -89,8 +93,12 @@ class _StoreViewState extends ConsumerState<StoreView> {
   Future<void> _openSignIn() async {
     final session = _session;
     if (session == null) return;
-    final signedIn = await showStoreSignInSheet(context, session: session);
-    if (!mounted || !signedIn) return;
+    await showStoreSignInSheet(context, session: session);
+    if (!mounted) return;
+    // The sheet reports the session, not its own pop result, so the page can
+    // flip to the signed-in view without waiting on a refresh.
+    setState(() => _signedIn = session.isSignedIn);
+    if (!session.isSignedIn) return;
     await _refresh(force: true);
   }
 
@@ -331,7 +339,7 @@ class _AccountCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
     final user = session?.userInfo;
-    if (!signedIn || user == null) {
+    if (!signedIn) {
       return Card(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -357,9 +365,12 @@ class _AccountCard extends StatelessWidget {
         ),
       );
     }
-    final ratio = user.transferEnable <= 0
+    // The token can outlive a failed profile fetch, so the card renders from
+    // empty figures rather than refusing to show a signed-in state.
+    final profile = user ?? XboardUserInfo.empty();
+    final ratio = profile.transferEnable <= 0
         ? 0.0
-        : (user.used / user.transferEnable).clamp(0.0, 1.0);
+        : (profile.used / profile.transferEnable).clamp(0.0, 1.0);
     return Card(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -369,7 +380,7 @@ class _AccountCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  user.email,
+                  profile.email,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTextStyle.headline.of(context),
@@ -387,13 +398,13 @@ class _AccountCard extends StatelessWidget {
               Expanded(
                 child: _Metric(
                   label: context.appLocalizations.storeBalance,
-                  value: formatPrice(user.balance),
+                  value: formatPrice(profile.balance),
                 ),
               ),
               Expanded(
                 child: _Metric(
                   label: context.appLocalizations.storeExpireAt,
-                  value: formatDate(user.expiredAtDate),
+                  value: formatDate(profile.expiredAtDate),
                 ),
               ),
             ],
@@ -408,15 +419,15 @@ class _AccountCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             '${context.appLocalizations.storeTraffic}: '
-            '${formatBytes(user.used)} / ${formatBytes(user.transferEnable)}',
+            '${formatBytes(profile.used)} / ${formatBytes(profile.transferEnable)}',
             style: AppTextStyle.footnote
                 .of(context)
                 .copyWith(color: colors.onSurfaceVariant),
           ),
-          if (user.planName != null && user.planName!.isNotEmpty) ...[
+          if (profile.planName != null && profile.planName!.isNotEmpty) ...[
             const SizedBox(height: 6),
             Text(
-              '${context.appLocalizations.storeCurrentPlan}: ${user.planName}',
+              '${context.appLocalizations.storeCurrentPlan}: ${profile.planName}',
               style: AppTextStyle.footnote
                   .of(context)
                   .copyWith(color: colors.onSurfaceVariant),
