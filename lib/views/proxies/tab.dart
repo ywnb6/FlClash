@@ -6,6 +6,7 @@ import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/common.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/widgets/widgets.dart';
+import 'package:fl_clash/common/connectivity_probe.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -95,14 +96,17 @@ class ProxiesTabViewState extends ConsumerState<ProxiesTabView>
     animateScrollTo(controller, rowOffset);
   }
 
-  Future<void> delayTestCurrentGroup() async {
+  Future<void> delayTestCurrentGroup() => delayTestWith(ProbeMethod.tcp);
+
+  /// Times the group's proxies with the method the bolt's menu selected.
+  Future<void> delayTestWith(ProbeMethod method) async {
     final group = currentGroup;
     if (group == null) {
       return;
     }
     await ref
         .read(proxiesActionProvider.notifier)
-        .delayTestPageGroup(group.name);
+        .delayTestPageGroup(group.name, method: method);
   }
 
   Group? get currentGroup {

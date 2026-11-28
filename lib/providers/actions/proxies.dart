@@ -30,6 +30,7 @@ class ProxiesAction extends _$ProxiesAction {
   CoreController get _core => ref.read(coreHandlerProvider);
 
   final TaskPool _delayTestPool = TaskPool(maxConcurrentDelayTests);
+  ProbeMethod _activeMethod = ProbeMethod.tcp;
 
   final List<_DelayTestJob> _delayTestJobs = [];
 
@@ -319,7 +320,12 @@ class ProxiesAction extends _$ProxiesAction {
     ]);
   }
 
-  Future<void> delayTest(List<Proxy> proxies, [String? testUrl]) async {
+  Future<void> delayTest(
+    List<Proxy> proxies, [
+    String? testUrl,
+    ProbeMethod method = ProbeMethod.tcp,
+  ]) async {
+    _activeMethod = method;
     await _runDelayTests([(proxies: proxies, testUrl: testUrl)]);
     ref.read(sortNumProvider.notifier).add();
   }
@@ -334,6 +340,7 @@ class ProxiesAction extends _$ProxiesAction {
   Future<void> delayTestPageGroup(
     String groupName, {
     bool matchSearch = true,
+    ProbeMethod method = ProbeMethod.tcp,
   }) async {
     final group = ref.read(groupsProvider).getGroup(groupName);
     if (group == null) {
@@ -350,6 +357,7 @@ class ProxiesAction extends _$ProxiesAction {
       await delayTest(
         group.all.whereMatches(query, (proxy) => proxy.searchFields).toList(),
         group.testUrl,
+        method: method,
       );
     } finally {
       testing.stop(groupName);
@@ -434,6 +442,15 @@ class ProxiesAction extends _$ProxiesAction {
   /// Times the node's own endpoint, which answers "how far is this node".
   /// The url test stays for nodes whose server the definition does not name.
   Future<Delay> _measure(_DelayTestJob job, _DelayTestTarget target) async {
+    if (_activeMethod == ProbeMethod.connect) {
+      return _core.testDelay(
+        TestDelayParams(
+          proxyName: target.proxyName,
+          testUrl: target.testUrl,
+          timeout: job.timeout.inMilliseconds,
+        ),
+      );
+    }
     final endpoint = await _endpointOf(target);
     if (endpoint != null) {
       final value = await _dial(endpoint, job.timeout);

@@ -11,7 +11,6 @@ import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'node_probe_sheet.dart';
 import 'tab.dart';
 
 class ProxiesView extends ConsumerStatefulWidget {
@@ -111,15 +110,7 @@ class _ProxiesViewState extends ConsumerState<ProxiesView> {
         options: ProbeMethod.values,
         value: _probeMethod,
         textOf: (method) => method.label,
-        onSelected: (method) {
-          setState(() => _probeMethod = method);
-          // The menu is still closing when this fires; opening the page in the
-          // same frame leaves the navigator without a route to show.
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
-            showNodeProbeSheet(context, method: method);
-          });
-        },
+        onSelected: (method) => setState(() => _probeMethod = method),
       ),
       PopupMenuItem(
         glyph: AppGlyphs.eyeOff,
@@ -151,8 +142,9 @@ class _ProxiesViewState extends ConsumerState<ProxiesView> {
     ref.read(queryProvider(QueryTag.proxies).notifier).value = value;
   }
 
+  /// The bolt times the groups in view with whichever method the menu picked.
   void _runDelayTest() {
-    _proxiesTabKey.currentState?.delayTestCurrentGroup();
+    _proxiesTabKey.currentState?.delayTestWith(_probeMethod);
   }
 
   @override
