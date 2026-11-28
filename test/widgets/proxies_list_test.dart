@@ -1,4 +1,5 @@
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/common/connectivity_probe.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
@@ -15,6 +16,7 @@ import '../helpers/test_app.dart';
 import '../helpers/test_profiles.dart';
 import '../helpers/host_scaffold.dart';
 import 'package:prism_ui/prism_ui.dart' hide ListHeader;
+import 'package:fl_clash/common/connectivity_probe.dart';
 
 class _RecordingProxiesAction extends ProxiesAction {
   static final List<String> tested = [];
@@ -23,6 +25,7 @@ class _RecordingProxiesAction extends ProxiesAction {
   Future<void> delayTestPageGroup(
     String groupName, {
     bool matchSearch = true,
+    ProbeMethod method = ProbeMethod.tcp,
   }) async {
     tested.add(groupName);
   }
