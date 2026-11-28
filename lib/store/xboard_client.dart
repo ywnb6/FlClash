@@ -24,7 +24,6 @@ class XboardClient {
 
   /// Shown wherever the app would otherwise print the address; the panel's own
   /// page title overrides it once fetched.
-  static const defaultSiteName = '易挽机场';
 
   /// What the panel sees as the client; it decides the config format a
   /// subscription is served in.

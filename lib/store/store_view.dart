@@ -184,7 +184,9 @@ class _StoreViewState extends ConsumerState<StoreView> {
     }
     final planName = session.userInfo?.planName?.trim();
     final label = planName == null || planName.isEmpty
-        ? session.siteName
+        ? (session.siteName.isEmpty
+              ? context.appLocalizations.subscriptionInfo
+              : session.siteName)
         : planName;
     await showStoreLinkSheet(
       context,
@@ -347,6 +349,7 @@ class _AccountCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
     final user = session?.userInfo;
+    final siteName = session?.siteName ?? '';
     if (!signedIn) {
       return Card(
         padding: const EdgeInsets.all(16),
@@ -357,13 +360,15 @@ class _AccountCard extends StatelessWidget {
               context.appLocalizations.storeWelcome,
               style: AppTextStyle.title3.of(context, emphasized: true),
             ),
-            const SizedBox(height: 6),
-            Text(
-              session?.siteName ?? XboardClient.defaultSiteName,
-              style: AppTextStyle.footnote
-                  .of(context)
-                  .copyWith(color: colors.onSurfaceVariant),
-            ),
+            if (siteName.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Text(
+                siteName,
+                style: AppTextStyle.footnote
+                    .of(context)
+                    .copyWith(color: colors.onSurfaceVariant),
+              ),
+            ],
             const SizedBox(height: 16),
             FilledButton(
               onPressed: onSignIn,
