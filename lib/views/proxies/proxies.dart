@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/common/connectivity_probe.dart';
 import 'package:fl_clash/enum/enum.dart';
@@ -115,16 +117,27 @@ class _ProxiesViewState extends ConsumerState<ProxiesView> {
     ];
   }
 
+  /// The bolt is offered in every layout, so the probes are reachable without
+  /// first switching to tabs.
   IconButtonData? _buildPrimaryAction() {
-    if (!_isTab) {
-      return null;
-    }
     final isDelayTesting = ref.watch(currentGroupDelayTestingProvider);
     return IconButtonData(
       glyph: AppGlyphs.bolt,
       onPressed: _pickProbe,
       tooltip: context.appLocalizations.delayTest,
       isLoading: isDelayTesting,
+    );
+  }
+
+  /// Runs the delay test from the provider rather than the tab view, which is
+  /// absent in the list layout.
+  void _runDelayTest() {
+    final groups = ref.read(proxiesTabStateProvider).groups;
+    if (groups.isEmpty) return;
+    unawaited(
+      ref
+          .read(proxiesActionProvider.notifier)
+          .delayTestPageGroup(groups.first.name),
     );
   }
 
@@ -137,7 +150,7 @@ class _ProxiesViewState extends ConsumerState<ProxiesView> {
     );
     if (!mounted) return;
     if (choice == null) {
-      _proxiesTabKey.currentState?.delayTestCurrentGroup();
+      _runDelayTest();
       return;
     }
     await showNodeProbeSheet(context, method: choice);
