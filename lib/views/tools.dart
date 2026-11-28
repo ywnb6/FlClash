@@ -10,7 +10,6 @@ import 'package:fl_clash/views/backup_and_restore.dart';
 import 'package:fl_clash/views/config/general.dart';
 import 'package:fl_clash/views/hotkey.dart';
 import 'package:fl_clash/widgets/widgets.dart';
-import 'package:fl_clash/views/tools/connectivity_test_view.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -69,7 +68,6 @@ class _ToolViewState extends ConsumerState<ToolsView> {
         const _ThemeItem(),
         if (system.isDesktop) const _HotkeyItem(),
         if (system.isAndroid) const _AccessItem(),
-        const _ConnectivityTestItem(),
         const _BackupItem(),
         const _AdvancedConfigItem(),
         const _GeneralItem(),
@@ -263,19 +261,6 @@ class _DeveloperItem extends StatelessWidget {
       leading: const GlyphIcon(AppGlyphs.cpu),
       title: Text(context.appLocalizations.developerMode),
       widget: const DeveloperView(),
-    );
-  }
-}
-
-class _ConnectivityTestItem extends StatelessWidget {
-  const _ConnectivityTestItem();
-
-  @override
-  Widget build(BuildContext context) {
-    return ListItem.open(
-      leading: const GlyphIcon(AppGlyphs.speed),
-      title: Text(context.appLocalizations.connectivityTest),
-      widget: const ConnectivityTestView(),
     );
   }
 }

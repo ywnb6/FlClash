@@ -8,6 +8,7 @@ import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'node_probe_sheet.dart';
 import 'tab.dart';
 
 class ProxiesView extends ConsumerStatefulWidget {
@@ -120,12 +121,25 @@ class _ProxiesViewState extends ConsumerState<ProxiesView> {
     final isDelayTesting = ref.watch(currentGroupDelayTestingProvider);
     return IconButtonData(
       glyph: AppGlyphs.bolt,
-      onPressed: () {
-        _proxiesTabKey.currentState?.delayTestCurrentGroup();
-      },
+      onPressed: _pickProbe,
       tooltip: context.appLocalizations.delayTest,
       isLoading: isDelayTesting,
     );
+  }
+
+  /// The bolt asks which measurement to run, so the node list answers both
+  /// "can it be reached" and "how far is it" from one place.
+  Future<void> _pickProbe() async {
+    final choice = await showFloatingDialog<ProbeMethod?>(
+      context: context,
+      child: _ProbePicker(),
+    );
+    if (!mounted) return;
+    if (choice == null) {
+      _proxiesTabKey.currentState?.delayTestCurrentGroup();
+      return;
+    }
+    await showNodeProbeSheet(context, method: choice);
   }
 
   void _onSearch(String value) {
