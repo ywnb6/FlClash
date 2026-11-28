@@ -316,9 +316,13 @@ class XboardClient {
     }
   }
 
-  /// Builds the share link for the signed-in account; [subPath] is the
-  /// panel's `subscribe_url` value and already carries the token.
-  String subscribeLink(XboardUserInfo info) => info.subscribeUrl;
+  /// The panel hands back a bare token and serves it under `/s/`; older
+  /// panels also send a full url, so that value wins when present.
+  String subscribeLink(XboardUserInfo info) {
+    if (info.subscribeUrl.isNotEmpty) return info.subscribeUrl;
+    if (info.subscribeToken.isEmpty) return '';
+    return '$_baseUrl/s/${info.subscribeToken}';
+  }
 
   Future<List<XboardPaymentMethod>> fetchPaymentMethods() async {
     final data = await _request('/user/order/getPaymentMethod');

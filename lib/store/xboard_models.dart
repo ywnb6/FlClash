@@ -124,7 +124,7 @@ class XboardUserInfo {
     required this.upload,
     required this.download,
     required this.expiredAt,
-    required this.subscribeUrl,
+    required this.subscribeToken,
     required this.planName,
     required this.discount,
     required this.banned,
@@ -140,7 +140,7 @@ class XboardUserInfo {
       upload = 0,
       download = 0,
       expiredAt = null,
-      subscribeUrl = '',
+      subscribeToken = '',
       planName = null,
       discount = null,
       banned = 0;
@@ -152,7 +152,7 @@ class XboardUserInfo {
   final int upload;
   final int download;
   final int? expiredAt;
-  final String subscribeUrl;
+  final String subscribeToken;
   final String? planName;
   final int? discount;
   final int banned;
@@ -166,7 +166,7 @@ class XboardUserInfo {
       upload: asIntOr(json['u'], 0),
       download: asIntOr(json['d'], 0),
       expiredAt: asInt(json['expired_at']),
-      subscribeUrl: asString(json['subscribe_url']),
+      subscribeToken: asString(json['token']),
       planName: asStringOrNull(
         json['plan_name'] ?? asMap(json['plan'])['name'],
       ),
@@ -185,7 +185,7 @@ class XboardUserInfo {
     return left > 0 ? left : 0;
   }
 
-  bool get hasSubscription => subscribeUrl.isNotEmpty;
+  bool get hasSubscription => subscribeToken.isNotEmpty;
 
   DateTime? get expiredAtDate {
     final value = expiredAt;
