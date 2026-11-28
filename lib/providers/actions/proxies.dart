@@ -5,11 +5,13 @@ class _DelayTestTarget {
     required this.proxyName,
     required this.testUrl,
     required this.key,
+    required this.addr,
   });
 
   final String proxyName;
   final String testUrl;
   final String key;
+  final String addr;
 }
 
 typedef _DelayTestBatch = ({List<Proxy> proxies, String? testUrl});
@@ -384,6 +386,7 @@ class ProxiesAction extends _$ProxiesAction {
             proxyName: state.proxyName,
             testUrl: currentTestUrl,
             key: key,
+            addr: proxy.addr,
           ),
         );
       }
@@ -427,6 +430,70 @@ class ProxiesAction extends _$ProxiesAction {
     }
   }
 
+
+  /// Times the node's own endpoint when it exposes one, which is what a client
+  /// means by "how far is this node"; the url test stays for the rest.
+  Future<Delay> _measure(_DelayTestJob job, _DelayTestTarget target) async {
+    final addr = target.addr.isNotEmpty
+        ? target.addr
+        : await _addrFromDefinition(target.proxyName);
+    if (addr.isNotEmpty && job.timeout > Duration.zero) {
+      final watch = Stopwatch()..start();
+      try {
+        final socket = await Socket.connect(
+          _hostOf(addr),
+          _portOf(addr),
+          timeout: job.timeout,
+        );
+        watch.stop();
+        socket.destroy();
+        return Delay(
+          name: target.proxyName,
+          url: target.testUrl,
+          value: watch.elapsedMilliseconds,
+        );
+      } on SocketException {
+        watch.stop();
+      } catch (_) {
+        watch.stop();
+      }
+    }
+    return _core.testDelay(
+      TestDelayParams(
+        proxyName: target.proxyName,
+        testUrl: target.testUrl,
+        timeout: job.timeout.inMilliseconds,
+      ),
+    );
+  }
+
+
+  /// The core reports the node's endpoint only for some protocols, so the
+  /// definition is the dependable place to read the server and port from.
+  Future<String> _addrFromDefinition(String name) async {
+    try {
+      final definition = await _core.getProxyDefinition(name);
+      if (definition == null) return '';
+      final server = definition['server'];
+      final port = definition['port'];
+      if (server is! String || server.isEmpty) return '';
+      return port == null ? server : '$server:$port';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  String _hostOf(String addr) {
+    final index = addr.lastIndexOf(':');
+    return index <= 0 ? addr : addr.substring(0, index);
+  }
+
+  int _portOf(String addr) {
+    final index = addr.lastIndexOf(':');
+    if (index <= 0) return 443;
+    return int.tryParse(addr.substring(index + 1)) ?? 443;
+  }
+
   Future<void> _runDelayTest(_DelayTestJob job, _DelayTestTarget target) async {
     if (job.cancelled) {
       return;
@@ -436,13 +503,7 @@ class ProxiesAction extends _$ProxiesAction {
       _scheduleDelayFlush();
     }
     try {
-      final delay = await _core.testDelay(
-        TestDelayParams(
-          proxyName: target.proxyName,
-          testUrl: target.testUrl,
-          timeout: job.timeout.inMilliseconds,
-        ),
-      );
+      final delay = await _measure(job, target);
       if (!job.cancelled) {
         setDelay(delay);
       }

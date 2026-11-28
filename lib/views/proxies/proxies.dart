@@ -113,7 +113,12 @@ class _ProxiesViewState extends ConsumerState<ProxiesView> {
         textOf: (method) => method.label,
         onSelected: (method) {
           setState(() => _probeMethod = method);
-          showNodeProbeSheet(context, method: method);
+          // The menu is still closing when this fires; opening the page in the
+          // same frame leaves the navigator without a route to show.
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            showNodeProbeSheet(context, method: method);
+          });
         },
       ),
       PopupMenuItem(

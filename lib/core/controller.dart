@@ -184,6 +184,10 @@ extension type CoreController._(CoreHandlerInterface _interface)
     );
   }
 
+  Future<Map<String, dynamic>?> getProxyDefinition(String name) {
+    return _interface.getProxyDefinition(name);
+  }
+
   Future<Map<String, dynamic>> readConfig(int id) async {
     final path = await appPath.getProfilePath(id.toString());
     final data = await _interface.readConfig(path);
