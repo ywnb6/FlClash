@@ -142,6 +142,10 @@ class _ProxiesViewState extends ConsumerState<ProxiesView> {
     );
   }
 
+  void _onSearch(String value) {
+    ref.read(queryProvider(QueryTag.proxies).notifier).value = value;
+  }
+
   void _runDelayTest() {
     _proxiesTabKey.currentState?.delayTestCurrentGroup();
   }
