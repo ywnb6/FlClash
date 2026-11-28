@@ -1323,5 +1323,9 @@
   "storeBackToSignIn": "Back to sign in",
   "storePasswordTooShort": "Use at least 8 characters",
   "storeResetDone": "Password reset, sign in with the new one",
-  "storeSignedIn": "Signed in"
+  "storeSignedIn": "Signed in",
+  "connectivityTest": "Connectivity test",
+  "connectivityTarget": "Host or IP",
+  "connectivityRun": "Run test",
+  "connectivityTip": "TCP checks the port answers, ICMP checks the host replies, CONNECT checks a proxy tunnel can be built."
 }

@@ -1208,5 +1208,9 @@
   "storeBackToSignIn": "Вернуться к входу",
   "storePasswordTooShort": "Не менее 8 символов",
   "storeResetDone": "Пароль сброшен",
-  "storeSignedIn": "Вы вошли"
+  "storeSignedIn": "Вы вошли",
+  "connectivityTest": "Проверка связи",
+  "connectivityTarget": "Хост или IP",
+  "connectivityRun": "Запустить",
+  "connectivityTip": "TCP проверяет порт, ICMP — отклик хоста, CONNECT — туннель через прокси."
 }

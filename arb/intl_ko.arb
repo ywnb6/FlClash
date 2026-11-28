@@ -1208,5 +1208,9 @@
   "storeBackToSignIn": "로그인으로 돌아가기",
   "storePasswordTooShort": "8자 이상 입력하세요",
   "storeResetDone": "비밀번호가 재설정되었습니다",
-  "storeSignedIn": "로그인됨"
+  "storeSignedIn": "로그인됨",
+  "connectivityTest": "연결 테스트",
+  "connectivityTarget": "호스트 또는 IP",
+  "connectivityRun": "테스트 시작",
+  "connectivityTip": "TCP는 포트, ICMP는 호스트 응답, CONNECT는 프록시 터널을 확인합니다."
 }

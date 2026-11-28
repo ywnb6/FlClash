@@ -1208,5 +1208,9 @@
   "storeBackToSignIn": "Volver al inicio",
   "storePasswordTooShort": "Al menos 8 caracteres",
   "storeResetDone": "Contraseña restablecida",
-  "storeSignedIn": "Sesión iniciada"
+  "storeSignedIn": "Sesión iniciada",
+  "connectivityTest": "Prueba de conexión",
+  "connectivityTarget": "Host o IP",
+  "connectivityRun": "Iniciar prueba",
+  "connectivityTip": "TCP comprueba el puerto, ICMP la respuesta del host, CONNECT el túnel del proxy."
 }
