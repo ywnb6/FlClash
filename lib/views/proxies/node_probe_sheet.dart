@@ -59,13 +59,13 @@ Future<void> showNodeProbeSheet(
   );
 }
 
-class _NodeProbeSheet extends StatefulWidget {
+class _NodeProbeSheet extends ConsumerStatefulWidget {
   const _NodeProbeSheet({required this.method});
 
   final ProbeMethod method;
 
   @override
-  State<_NodeProbeSheet> createState() => _NodeProbeSheetState();
+  ConsumerState<_NodeProbeSheet> createState() => _NodeProbeSheetState();
 }
 
 class _NodeProbeSheetState extends ConsumerState<_NodeProbeSheet> {
@@ -140,10 +140,11 @@ class _NodeProbeSheetState extends ConsumerState<_NodeProbeSheet> {
           timeout: 5000,
         ),
       );
+      final value = delay.value ?? 0;
       return NodeProbeResult(
         method: ProbeMethod.connect,
-        outcome: delay.value > 0 ? ProbeOutcome.reached : ProbeOutcome.timeout,
-        milliseconds: delay.value > 0 ? delay.value : null,
+        outcome: value > 0 ? ProbeOutcome.reached : ProbeOutcome.timeout,
+        milliseconds: value > 0 ? value : null,
       );
     } catch (error) {
       return NodeProbeResult(

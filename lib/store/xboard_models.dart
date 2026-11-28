@@ -125,6 +125,7 @@ class XboardUserInfo {
     required this.download,
     required this.expiredAt,
     required this.subscribeToken,
+    required this.subscribeUrl,
     required this.planName,
     required this.discount,
     required this.banned,
@@ -141,6 +142,7 @@ class XboardUserInfo {
       download = 0,
       expiredAt = null,
       subscribeToken = '',
+      subscribeUrl = '',
       planName = null,
       discount = null,
       banned = 0;
@@ -153,6 +155,7 @@ class XboardUserInfo {
   final int download;
   final int? expiredAt;
   final String subscribeToken;
+  final String subscribeUrl;
   final String? planName;
   final int? discount;
   final int banned;
@@ -167,6 +170,7 @@ class XboardUserInfo {
       download: asIntOr(json['d'], 0),
       expiredAt: asInt(json['expired_at']),
       subscribeToken: asString(json['token']),
+      subscribeUrl: asString(json['subscribe_url']),
       planName: asStringOrNull(
         json['plan_name'] ?? asMap(json['plan'])['name'],
       ),

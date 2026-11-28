@@ -145,6 +145,37 @@ class _ProxiesViewState extends ConsumerState<ProxiesView> {
   void _runDelayTest() {
     _proxiesTabKey.currentState?.delayTestCurrentGroup();
   }
+
+  @override
+  Widget build(BuildContext context) {
+    final style = ref.watch(proxiesStyleSettingProvider);
+    final isLoading = ref.watch(loadingProvider(LoadingTag.proxies));
+    final picker = widget.picker;
+    final primaryAction = _buildPrimaryAction();
+    return Scaffold(
+      isLoading: isLoading,
+      resizeToAvoidBottomInset: false,
+      primaryAction: primaryAction,
+      searchActions: [?primaryAction],
+      iconActions: [
+        if (_isTab && !picker)
+          IconButtonData(
+            glyph: AppGlyphs.locate,
+            onPressed: () {
+              _proxiesTabKey.currentState?.scrollToGroupSelected();
+            },
+            tooltip: context.appLocalizations.scrollToSelected,
+          ),
+      ],
+      menuItems: picker ? const [] : _buildMenuItems(context, style),
+      title: context.appLocalizations.proxies,
+      searchState: AppBarSearchState(onSearch: _onSearch),
+      body: switch (style.type) {
+        ProxiesType.tab => _tabView,
+        ProxiesType.list => const ProxiesListView(),
+      },
+    );
+  }
 }
 
 PopupMenuItem _optionsMenuItem<T>({
