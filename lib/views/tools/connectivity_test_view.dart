@@ -1,5 +1,7 @@
 import 'package:fl_clash/common/connectivity_probe.dart';
 import 'package:fl_clash/features/features.dart';
+import 'package:fl_clash/l10n/l10n.dart';
+import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/ui/scaffold/scaffold.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/widgets.dart';
