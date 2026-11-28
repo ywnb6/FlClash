@@ -431,31 +431,18 @@ class ProxiesAction extends _$ProxiesAction {
   }
 
 
-  /// Times the node's own endpoint when it exposes one, which is what a client
-  /// means by "how far is this node"; the url test stays for the rest.
+  /// Times the node's own endpoint, which answers "how far is this node".
+  /// The url test stays for nodes whose server the definition does not name.
   Future<Delay> _measure(_DelayTestJob job, _DelayTestTarget target) async {
-    final addr = target.addr.isNotEmpty
-        ? target.addr
-        : await _addrFromDefinition(target.proxyName);
-    if (addr.isNotEmpty && job.timeout > Duration.zero) {
-      final watch = Stopwatch()..start();
-      try {
-        final socket = await Socket.connect(
-          _hostOf(addr),
-          _portOf(addr),
-          timeout: job.timeout,
-        );
-        watch.stop();
-        socket.destroy();
+    final endpoint = await _endpointOf(target);
+    if (endpoint != null) {
+      final value = await _dial(endpoint, job.timeout);
+      if (value > 0) {
         return Delay(
           name: target.proxyName,
           url: target.testUrl,
-          value: watch.elapsedMilliseconds,
+          value: value,
         );
-      } on SocketException {
-        watch.stop();
-      } catch (_) {
-        watch.stop();
       }
     }
     return _core.testDelay(
@@ -467,31 +454,44 @@ class ProxiesAction extends _$ProxiesAction {
     );
   }
 
-
-  /// The core reports the node's endpoint only for some protocols, so the
-  /// definition is the dependable place to read the server and port from.
-  Future<String> _addrFromDefinition(String name) async {
-    try {
-      final definition = await _core.getProxyDefinition(name);
-      if (definition == null) return '';
-      final server = definition['server'];
-      final port = definition['port'];
-      if (server is! String || server.isEmpty) return '';
-      return port == null ? server : '$server:$port';
-    } catch (_) {
-      return '';
+  /// The node's server and port, from the group entry when the core fills it
+  /// in and from the definition otherwise.
+  Future<({String host, int port})?> _endpointOf(_DelayTestTarget target) async {
+    final candidates = [target.addr];
+    if (target.addr.isEmpty) {
+      try {
+        final definition = await _core.getProxyDefinition(target.proxyName);
+        final server = definition?['server'];
+        final port = definition?['port'];
+        if (server is String && server.isNotEmpty) {
+          candidates.add('$server:${port ?? 443}');
+        }
+      } catch (_) {}
     }
+    for (final candidate in candidates) {
+      final parsed = parseEndpoint(candidate);
+      if (parsed != null) return parsed;
+    }
+    return null;
   }
 
-  String _hostOf(String addr) {
-    final index = addr.lastIndexOf(':');
-    return index <= 0 ? addr : addr.substring(0, index);
-  }
 
-  int _portOf(String addr) {
-    final index = addr.lastIndexOf(':');
-    if (index <= 0) return 443;
-    return int.tryParse(addr.substring(index + 1)) ?? 443;
+  Future<int> _dial(({String host, int port}) endpoint, Duration timeout) async {
+    final watch = Stopwatch()..start();
+    Socket? socket;
+    try {
+      socket = await Socket.connect(
+        endpoint.host,
+        endpoint.port,
+        timeout: timeout,
+      );
+      return watch.elapsedMilliseconds;
+    } catch (_) {
+      return 0;
+    } finally {
+      watch.stop();
+      socket?.destroy();
+    }
   }
 
   Future<void> _runDelayTest(_DelayTestJob job, _DelayTestTarget target) async {
@@ -522,4 +522,16 @@ class ProxiesAction extends _$ProxiesAction {
       }
     }
   }
+}
+
+/// Splits a node endpoint into host and port, falling back to 443 when the
+/// address carries no usable port.
+({String host, int port})? parseEndpoint(String addr) {
+  final text = addr.trim();
+  if (text.isEmpty) return null;
+  final index = text.lastIndexOf(':');
+  if (index <= 0) return (host: text, port: 443);
+  final port = int.tryParse(text.substring(index + 1));
+  if (port == null) return (host: text, port: 443);
+  return (host: text.substring(0, index), port: port);
 }
