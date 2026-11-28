@@ -1209,8 +1209,10 @@
   "storePasswordTooShort": "8文字以上にしてください",
   "storeResetDone": "再設定しました",
   "storeSignedIn": "サインインしました",
-  "connectivityTest": "接続テスト",
+  "connectivityTest": "ノード接続テスト",
   "connectivityTarget": "ホストまたは IP",
   "connectivityRun": "テスト開始",
-  "connectivityTip": "TCP はポート、ICMP はホストの応答、CONNECT はプロキシトンネルを確認します。"
+  "connectivityTip": "TCP はポート、ICMP はホストの応答、CONNECT はプロキシトンネルを確認します。",
+  "connectivityMethod": "方式",
+  "connectivityNodeCount": "{count} ノード、タップで全テスト"
 }

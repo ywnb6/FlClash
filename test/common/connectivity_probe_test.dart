@@ -2,42 +2,40 @@ import 'package:fl_clash/common/connectivity_probe.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  group('parseProbeTarget', () {
-    test('a bare host takes the method default port', () {
-      final target = parseProbeTarget('example.com', ProbeMethod.tcp);
-      expect(target.host, 'example.com');
-      expect(target.port, 443);
-    });
-
-    test('an explicit port wins over the default', () {
-      final target = parseProbeTarget('example.com:8443', ProbeMethod.tcp);
-      expect(target.host, 'example.com');
+  group('splitNodeAddr', () {
+    test('a host and port are split apart', () {
+      final target = splitNodeAddr('1.2.3.4:8443');
+      expect(target.host, '1.2.3.4');
       expect(target.port, 8443);
     });
 
-    test('a full url contributes host and port', () {
-      final target = parseProbeTarget(
-        'https://example.com:2053/path',
-        ProbeMethod.tcp,
-      );
-      expect(target.host, 'example.com');
+    test('a bare host keeps the fallback port', () {
+      final target = splitNodeAddr('node.example.com');
+      expect(target.host, 'node.example.com');
+      expect(target.port, 443);
+    });
+
+    test('a hostname with a port splits on the last colon', () {
+      final target = splitNodeAddr('node.example.com:2053');
+      expect(target.host, 'node.example.com');
       expect(target.port, 2053);
     });
 
-    test('surrounding spaces are dropped', () {
-      final target = parseProbeTarget('  example.com  ', ProbeMethod.tcp);
-      expect(target.host, 'example.com');
+    test('an ipv6 literal keeps its inner colons', () {
+      final target = splitNodeAddr('[2001:db8::1]:443');
+      expect(target.host, '2001:db8::1');
+      expect(target.port, 443);
     });
 
-    test('an empty input stays empty', () {
-      final target = parseProbeTarget('', ProbeMethod.tcp);
+    test('a non numeric tail is treated as part of the host', () {
+      final target = splitNodeAddr('node:abc', fallback: 80);
+      expect(target.host, 'node:abc');
+      expect(target.port, 80);
+    });
+
+    test('an empty address stays empty', () {
+      final target = splitNodeAddr('  ');
       expect(target.host, isEmpty);
-    });
-
-    test('icmp keeps the address and carries no port', () {
-      final target = parseProbeTarget('1.1.1.1', ProbeMethod.icmp);
-      expect(target.host, '1.1.1.1');
-      expect(target.port, 0);
     });
   });
 
@@ -47,62 +45,30 @@ void main() {
         expect(method.label, isNotEmpty);
       }
     });
-
-    test('only icmp omits the port', () {
-      expect(ProbeMethod.tcp.usesPort, isTrue);
-      expect(ProbeMethod.connect.usesPort, isTrue);
-      expect(ProbeMethod.icmp.usesPort, isFalse);
-    });
   });
 
-  group('ProbeResult', () {
-    test('reached and slow both count as ok', () {
-      const reached = ProbeResult(
-        method: ProbeMethod.tcp,
-        target: 'a:1',
-        outcome: ProbeOutcome.reached,
-        milliseconds: 12,
-      );
-      const slow = ProbeResult(
-        method: ProbeMethod.tcp,
-        target: 'a:1',
-        outcome: ProbeOutcome.slow,
-        milliseconds: 900,
-      );
-      expect(reached.ok, isTrue);
-      expect(slow.ok, isTrue);
-    });
-
-    test('a timeout or a refusal is not ok', () {
-      for (final outcome in [
-        ProbeOutcome.timeout,
-        ProbeOutcome.refused,
-        ProbeOutcome.failed,
-      ]) {
-        final result = ProbeResult(
+  group('NodeProbeResult', () {
+    test('only a reached probe counts as ok', () {
+      for (final outcome in ProbeOutcome.values) {
+        final result = NodeProbeResult(
           method: ProbeMethod.tcp,
-          target: 'a:1',
           outcome: outcome,
         );
-        expect(result.ok, isFalse);
+        expect(result.ok, outcome == ProbeOutcome.reached);
       }
     });
   });
 
-  group('ConnectivityProbe', () {
-    test('an empty target fails without touching the network', () async {
-      final result = await const ConnectivityProbe().run(
-        method: ProbeMethod.tcp,
-        input: '   ',
-      );
+  group('NodeProbe', () {
+    test('an empty address fails without touching the network', () async {
+      final result = await const NodeProbe().tcp('');
       expect(result.outcome, ProbeOutcome.failed);
-      expect(result.detail, 'empty');
+      expect(result.detail, 'no address');
     });
 
-    test('tcp against a closed local port does not report ok', () async {
-      final result = await const ConnectivityProbe().run(
-        method: ProbeMethod.tcp,
-        input: '127.0.0.1:1',
+    test('a closed local port does not report reached', () async {
+      final result = await const NodeProbe().tcp(
+        '127.0.0.1:1',
         timeout: const Duration(seconds: 1),
       );
       expect(result.ok, isFalse);

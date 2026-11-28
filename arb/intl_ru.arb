@@ -1209,8 +1209,10 @@
   "storePasswordTooShort": "Не менее 8 символов",
   "storeResetDone": "Пароль сброшен",
   "storeSignedIn": "Вы вошли",
-  "connectivityTest": "Проверка связи",
+  "connectivityTest": "Проверка узлов",
   "connectivityTarget": "Хост или IP",
   "connectivityRun": "Запустить",
-  "connectivityTip": "TCP проверяет порт, ICMP — отклик хоста, CONNECT — туннель через прокси."
+  "connectivityTip": "TCP проверяет порт, ICMP — отклик хоста, CONNECT — туннель через прокси.",
+  "connectivityMethod": "Метод",
+  "connectivityNodeCount": "{count} узлов, нажмите для проверки"
 }

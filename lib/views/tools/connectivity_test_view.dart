@@ -1,6 +1,9 @@
-import 'package:fl_clash/common/connectivity_probe.dart';
-import 'package:fl_clash/features/features.dart';
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/common/connectivity_probe.dart';
+import 'package:fl_clash/core/core.dart';
+import 'package:fl_clash/features/features.dart';
+import 'package:fl_clash/l10n/l10n.dart';
+import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/ui/scaffold/scaffold.dart';
 import 'package:fl_clash/widgets/widgets.dart';
@@ -14,35 +17,104 @@ class ConnectivityTestView extends StatefulWidget {
   State<ConnectivityTestView> createState() => _ConnectivityTestViewState();
 }
 
-class _ConnectivityTestViewState extends State<ConnectivityTestView> {
-  static const _probe = ConnectivityProbe();
+class _NodeRow {
+  _NodeRow({required this.name, required this.addr});
 
-  final _target = TextEditingController(text: 'www.qualcomm.cn');
+  final String name;
+  final String addr;
+  NodeProbeResult? result;
+  bool running = false;
+}
+
+class _ConnectivityTestViewState extends State<ConnectivityTestView> {
+  static const _probe = NodeProbe();
+
+  final List<_NodeRow> _rows = [];
   ProbeMethod _method = ProbeMethod.tcp;
-  ProbeResult? _result;
+  bool _loading = true;
   bool _running = false;
+  String? _error;
 
   @override
-  void dispose() {
-    _target.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _loadNodes();
   }
 
-  Future<void> _run() async {
-    if (_running) return;
-    FocusScope.of(context).unfocus();
+  Future<void> _loadNodes() async {
     setState(() {
-      _running = true;
-      _result = null;
+      _loading = true;
+      _error = null;
     });
-    final result = await _probe.run(
-      method: _method,
-      input: _target.text,
-    );
+    try {
+      final data = await coreController.getProxies();
+      final rows = <_NodeRow>[];
+      for (final entry in data.proxies.entries) {
+        final raw = entry.value;
+        if (raw is! Map) continue;
+        final proxy = Proxy.fromJson(raw.cast<String, Object?>());
+        if (proxy.addr.isEmpty) continue;
+        if (proxy.type == 'Direct' || proxy.type == 'Reject') continue;
+        if (proxy.type == 'Selector' || proxy.type == 'URLTest') continue;
+        if (proxy.type == 'Fallback' || proxy.type == 'LoadBalance') continue;
+        rows.add(_NodeRow(name: proxy.name, addr: proxy.addr));
+      }
+      rows.sort((a, b) => a.name.compareTo(b.name));
+      if (!mounted) return;
+      setState(() {
+        _rows
+          ..clear()
+          ..addAll(rows);
+        _loading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = error.toString();
+      });
+    }
+  }
+
+  Future<NodeProbeResult> _measure(_NodeRow row) async {
+    return switch (_method) {
+      ProbeMethod.tcp => _probe.tcp(row.addr),
+      ProbeMethod.icmp => _probe.icmp(row.addr),
+      ProbeMethod.connect => _probe.connect(row.addr),
+    };
+  }
+
+  Future<void> _runAll() async {
+    if (_running || _rows.isEmpty) return;
+    setState(() => _running = true);
+    for (final row in _rows) {
+      if (!mounted) return;
+      setState(() {
+        row.running = true;
+        row.result = null;
+      });
+      final result = await _measure(row);
+      if (!mounted) return;
+      setState(() {
+        row.running = false;
+        row.result = result;
+      });
+    }
+    if (!mounted) return;
+    setState(() => _running = false);
+  }
+
+  Future<void> _runOne(_NodeRow row) async {
+    if (_running) return;
+    setState(() {
+      row.running = true;
+      row.result = null;
+    });
+    final result = await _measure(row);
     if (!mounted) return;
     setState(() {
-      _running = false;
-      _result = result;
+      row.running = false;
+      row.result = result;
     });
   }
 
@@ -50,122 +122,183 @@ class _ConnectivityTestViewState extends State<ConnectivityTestView> {
   Widget build(BuildContext context) {
     final appLocalizations = context.appLocalizations;
     final colors = context.colorScheme;
-    final result = _result;
     return Scaffold(
       title: appLocalizations.connectivityTest,
-      body: ListView(
-        padding: EdgeInsets.only(
-          left: 16,
-          right: 16,
-          top: context.sectionsTopPadding,
-          bottom: 24 + context.bottomInset,
-        ),
-        children: [
-          generateSection(
-            items: [
-              ListItem(
-                title: FormRowTextField(
-                  controller: _target,
-                  hintText: appLocalizations.connectivityTarget,
-                  autocorrect: false,
-                  keyboardType: TextInputType.url,
-                  onFieldSubmitted: (_) => _run(),
+      body: Builder(
+        builder: (context) {
+          if (_loading) {
+            return const Center(child: ActivityIndicator());
+          }
+          if (_error != null) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  _error!,
+                  textAlign: TextAlign.center,
+                  style: AppTextStyle.body
+                      .of(context)
+                      .copyWith(color: colors.error),
                 ),
               ),
-              for (final method in ProbeMethod.values)
-                ListItem(
-                  title: Text(method.label),
-                  trailing: method == _method
-                      ? GlyphIcon(
-                          AppGlyphs.check,
-                          color: colors.primary,
-                        )
-                      : null,
-                  onTap: () => setState(() {
-                    _method = method;
-                    _result = null;
-                  }),
+            );
+          }
+          return ListView(
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: context.sectionsTopPadding,
+              bottom: 24 + context.bottomInset,
+            ),
+            children: [
+              generateSection(
+                items: [
+                  ListItem(
+                    title: Text(appLocalizations.connectivityMethod),
+                    subtitle: Text(_method.label),
+                    trailing: const GlyphIcon(AppGlyphs.chevronDown),
+                    onTap: _pickMethod,
+                  ),
+                  ListItem(
+                    title: Text(appLocalizations.connectivityNodeCount(_rows.length)),
+                    trailing: GlyphIcon(
+                      AppGlyphs.refresh,
+                      color: colors.primary,
+                    ),
+                    onTap: _runAll,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              for (final row in _rows)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: _NodeCard(
+                    row: row,
+                    onTap: () => _runOne(row),
+                  ),
                 ),
             ],
-          ),
-          if (result != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: _ResultCard(result: result),
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _pickMethod() async {
+    final next = await showFloatingDialog<ProbeMethod>(
+      context: context,
+      child: _MethodPicker(current: _method),
+    );
+    if (next == null || !mounted) return;
+    setState(() {
+      _method = next;
+      for (final row in _rows) {
+        row.result = null;
+      }
+    });
+  }
+}
+
+class _MethodPicker extends StatelessWidget {
+  const _MethodPicker({required this.current});
+
+  final ProbeMethod current;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final method in ProbeMethod.values)
+            ListItem(
+              title: Text(method.label),
+              trailing: method == current
+                  ? const GlyphIcon(AppGlyphs.check)
+                  : null,
+              onTap: () => Navigator.of(context).pop(method),
             ),
-          const SizedBox(height: 16),
-          FilledButton(
-            onPressed: _running ? null : _run,
-            child: _running
-                ? const ActivityIndicator(size: 16)
-                : Text(appLocalizations.connectivityRun),
-          ),
-          const SizedBox(height: 10),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text(
-              appLocalizations.connectivityTip,
-              style: AppTextStyle.footnote
-                  .of(context)
-                  .copyWith(color: colors.onSurfaceVariant, height: 1.5),
-            ),
-          ),
         ],
       ),
     );
   }
 }
 
-class _ResultCard extends StatelessWidget {
-  const _ResultCard({required this.result});
+class _NodeCard extends StatelessWidget {
+  const _NodeCard({required this.row, required this.onTap});
 
-  final ProbeResult result;
+  final _NodeRow row;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
-    final ok = result.ok;
-    final tone = ok ? colors.primary : colors.error;
+    final result = row.result;
+    final Color tone;
+    if (row.running) {
+      tone = colors.onSurfaceVariant;
+    } else if (result == null) {
+      tone = colors.onSurfaceVariant;
+    } else if (result.ok) {
+      tone = colors.primary;
+    } else {
+      tone = colors.error;
+    }
     return Card(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  result.method.label,
-                  style: AppTextStyle.headline.of(context),
-                ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: row.running ? null : onTap,
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    row.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyle.body.of(context),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    row.addr,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyle.caption1
+                        .of(context)
+                        .copyWith(color: colors.onSurfaceVariant),
+                  ),
+                ],
               ),
+            ),
+            const SizedBox(width: 12),
+            if (row.running)
+              const ActivityIndicator(size: 14)
+            else if (result == null)
               Text(
-                ok
-                    ? '${result.milliseconds ?? 0} ms'
-                    : result.outcome.name.toUpperCase(),
-                style: AppTextStyle.title3
-                    .of(context, emphasized: true)
+                '—',
+                style: AppTextStyle.body.of(context).copyWith(color: tone),
+              )
+            else if (result.ok)
+              Text(
+                '${result.milliseconds ?? 0} ms',
+                style: AppTextStyle.body
+                    .of(context)
+                    .copyWith(color: tone),
+              )
+            else
+              Text(
+                result.outcome.name,
+                style: AppTextStyle.caption1
+                    .of(context)
                     .copyWith(color: tone),
               ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            result.target,
-            style: AppTextStyle.footnote
-                .of(context)
-                .copyWith(color: colors.onSurfaceVariant),
-          ),
-          if (result.detail != null && result.detail!.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              result.detail!,
-              style: AppTextStyle.footnote
-                  .of(context)
-                  .copyWith(color: colors.error),
-            ),
           ],
-        ],
+        ),
       ),
     );
   }

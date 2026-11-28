@@ -1209,8 +1209,17 @@
   "storePasswordTooShort": "密码至少 8 位",
   "storeResetDone": "密码已重置，请用新密码登录",
   "storeSignedIn": "登录成功",
-  "connectivityTest": "连通性测试",
+  "connectivityTest": "节点连通性测试",
   "connectivityTarget": "域名或 IP",
   "connectivityRun": "开始测试",
-  "connectivityTip": "TCP 检测端口是否可连；ICMP 检测主机是否响应；CONNECT 检测代理隧道能否建立。"
+  "connectivityTip": "TCP 检测端口是否可连；ICMP 检测主机是否响应；CONNECT 检测代理隧道能否建立。",
+  "connectivityMethod": "检测方式",
+  "connectivityNodeCount": "共 {count} 个节点，点此全部测试",
+  "@connectivityNodeCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }
