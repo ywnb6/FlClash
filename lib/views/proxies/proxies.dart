@@ -32,6 +32,7 @@ class _ProxiesViewState extends ConsumerState<ProxiesView> {
   // group or its delay test leaves the page alone.
   late final _tabView = ProxiesTabView(key: _proxiesTabKey);
   bool _isTab = false;
+  ProbeMethod _probeMethod = ProbeMethod.tcp;
 
   void _updateStyle(
     ProxiesStyleProps Function(ProxiesStyleProps state) update,
@@ -104,6 +105,17 @@ class _ProxiesViewState extends ConsumerState<ProxiesView> {
           onSelected: (iconStyle) =>
               _updateStyle((state) => state.copyWith(iconStyle: iconStyle)),
         ),
+      _optionsMenuItem(
+        glyph: AppGlyphs.link,
+        label: appLocalizations.connectivityTest,
+        options: ProbeMethod.values,
+        value: _probeMethod,
+        textOf: (method) => method.label,
+        onSelected: (method) {
+          setState(() => _probeMethod = method);
+          showNodeProbeSheet(context, method: method);
+        },
+      ),
       PopupMenuItem(
         glyph: AppGlyphs.eyeOff,
         label: appLocalizations.hideTimeoutProxies,
@@ -117,96 +129,21 @@ class _ProxiesViewState extends ConsumerState<ProxiesView> {
     ];
   }
 
-  /// The bolt is offered in every layout, so the probes are reachable without
-  /// first switching to tabs.
   IconButtonData? _buildPrimaryAction() {
+    if (!_isTab) {
+      return null;
+    }
     final isDelayTesting = ref.watch(currentGroupDelayTestingProvider);
     return IconButtonData(
       glyph: AppGlyphs.bolt,
-      onPressed: _pickProbe,
+      onPressed: _runDelayTest,
       tooltip: context.appLocalizations.delayTest,
       isLoading: isDelayTesting,
     );
   }
 
-  /// Runs the delay test from the provider rather than the tab view, which is
-  /// absent in the list layout.
   void _runDelayTest() {
-    final groups = ref.read(proxiesTabStateProvider).groups;
-    if (groups.isEmpty) return;
-    unawaited(
-      ref
-          .read(proxiesActionProvider.notifier)
-          .delayTestPageGroup(groups.first.name),
-    );
-  }
-
-  /// The bolt asks which measurement to run, so the node list answers both
-  /// "can it be reached" and "how far is it" from one place.
-  Future<void> _pickProbe() async {
-    final choice = await showFloatingDialog<ProbeMethod?>(
-      context: context,
-      child: const ProbePicker(),
-    );
-    if (!mounted) return;
-    if (choice == null) {
-      _runDelayTest();
-      return;
-    }
-    await showNodeProbeSheet(context, method: choice);
-  }
-
-  void _onSearch(String value) {
-    ref.read(queryProvider(QueryTag.proxies).notifier).value = value;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    ref.listenManual(
-      proxiesStyleSettingProvider.select(
-        (state) => state.type == ProxiesType.tab,
-      ),
-      (prev, next) {
-        if (prev != next) {
-          setState(() {
-            _isTab = next;
-          });
-        }
-      },
-      fireImmediately: true,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final style = ref.watch(proxiesStyleSettingProvider);
-    final isLoading = ref.watch(loadingProvider(LoadingTag.proxies));
-    final picker = widget.picker;
-    final primaryAction = _buildPrimaryAction();
-    return Scaffold(
-      isLoading: isLoading,
-      resizeToAvoidBottomInset: false,
-      primaryAction: primaryAction,
-      searchActions: [?primaryAction],
-      iconActions: [
-        if (_isTab && !picker)
-          IconButtonData(
-            glyph: AppGlyphs.locate,
-            onPressed: () {
-              _proxiesTabKey.currentState?.scrollToGroupSelected();
-            },
-            tooltip: context.appLocalizations.scrollToSelected,
-          ),
-      ],
-      menuItems: picker ? const [] : _buildMenuItems(context, style),
-      title: context.appLocalizations.proxies,
-      searchState: AppBarSearchState(onSearch: _onSearch),
-      body: switch (style.type) {
-        ProxiesType.tab => _tabView,
-        ProxiesType.list => const ProxiesListView(),
-      },
-    );
+    _proxiesTabKey.currentState?.delayTestCurrentGroup();
   }
 }
 

@@ -2,10 +2,12 @@ import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/common/connectivity_probe.dart';
 import 'package:fl_clash/core/core.dart';
 import 'package:fl_clash/models/models.dart';
+import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/ui/nested_sheet.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prism_ui/prism_ui.dart';
 
 /// The bolt's menu: the delay test it always ran, plus the three probes that
@@ -51,9 +53,9 @@ Future<void> showNodeProbeSheet(
   BuildContext context, {
   required ProbeMethod method,
 }) {
-  return showNestedSheet<void>(
+  return pushNestedPage<void>(
     context,
-    builder: (_) => _NodeProbeSheet(method: method),
+    _NodeProbeSheet(method: method),
   );
 }
 
@@ -66,7 +68,7 @@ class _NodeProbeSheet extends StatefulWidget {
   State<_NodeProbeSheet> createState() => _NodeProbeSheetState();
 }
 
-class _NodeProbeSheetState extends State<_NodeProbeSheet> {
+class _NodeProbeSheetState extends ConsumerState<_NodeProbeSheet> {
   static const _probe = NodeProbe();
 
   final List<_NodeRow> _rows = [];
@@ -120,11 +122,37 @@ class _NodeProbeSheetState extends State<_NodeProbeSheet> {
     }
   }
 
+  /// CONNECT is the core's own delay test: the node is dialled through the
+  /// tunnel and timed against the configured test url, which is the number the
+  /// proxy page already shows.
   Future<NodeProbeResult> _measure(_NodeRow row) => switch (widget.method) {
     ProbeMethod.tcp => _probe.tcp(row.addr),
     ProbeMethod.icmp => _probe.icmp(row.addr),
-    ProbeMethod.connect => _probe.connect(row.addr),
+    ProbeMethod.connect => _coreDelay(row.name),
   };
+
+  Future<NodeProbeResult> _coreDelay(String name) async {
+    try {
+      final delay = await coreController.testDelay(
+        TestDelayParams(
+          proxyName: name,
+          testUrl: ref.read(patchClashConfigProvider).testUrl,
+          timeout: 5000,
+        ),
+      );
+      return NodeProbeResult(
+        method: ProbeMethod.connect,
+        outcome: delay.value > 0 ? ProbeOutcome.reached : ProbeOutcome.timeout,
+        milliseconds: delay.value > 0 ? delay.value : null,
+      );
+    } catch (error) {
+      return NodeProbeResult(
+        method: ProbeMethod.connect,
+        outcome: ProbeOutcome.failed,
+        detail: error.toString(),
+      );
+    }
+  }
 
   Future<void> _runAll() async {
     if (_running) return;
