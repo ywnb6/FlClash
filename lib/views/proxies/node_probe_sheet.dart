@@ -10,8 +10,8 @@ import 'package:prism_ui/prism_ui.dart';
 
 /// The bolt's menu: the delay test it always ran, plus the three probes that
 /// reach the node itself rather than the URL behind it.
-class _ProbePicker extends StatelessWidget {
-  const _ProbePicker();
+class ProbePicker extends StatelessWidget {
+  const ProbePicker({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -151,7 +151,7 @@ class _NodeProbeSheetState extends State<_NodeProbeSheet> {
     final appLocalizations = context.appLocalizations;
     final colors = context.colorScheme;
     return Scaffold(
-      title: Text(appLocalizations.connectivityTest),
+      title: appLocalizations.connectivityTest,
       body: Builder(
         builder: (context) {
           if (_loading) {

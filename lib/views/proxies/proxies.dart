@@ -1,4 +1,5 @@
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/common/connectivity_probe.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
@@ -132,7 +133,7 @@ class _ProxiesViewState extends ConsumerState<ProxiesView> {
   Future<void> _pickProbe() async {
     final choice = await showFloatingDialog<ProbeMethod?>(
       context: context,
-      child: _ProbePicker(),
+      child: const ProbePicker(),
     );
     if (!mounted) return;
     if (choice == null) {
