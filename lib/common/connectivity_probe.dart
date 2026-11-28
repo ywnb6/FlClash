@@ -5,12 +5,11 @@ import 'dart:io';
 /// How a node was reached, or why it was not.
 enum ProbeOutcome { reached, timeout, refused, failed }
 
-enum ProbeMethod { tcp, icmp, connect }
+enum ProbeMethod { tcp, connect }
 
 extension ProbeMethodLabel on ProbeMethod {
   String get label => switch (this) {
     ProbeMethod.tcp => 'TCP',
-    ProbeMethod.icmp => 'ICMP',
     ProbeMethod.connect => 'CONNECT',
   };
 }
@@ -93,54 +92,6 @@ class NodeProbe {
     }
   }
 
-  Future<NodeProbeResult> icmp(String addr) async {
-    final target = splitNodeAddr(addr);
-    if (target.host.isEmpty) {
-      return const NodeProbeResult(
-        method: ProbeMethod.icmp,
-        outcome: ProbeOutcome.failed,
-        detail: 'no address',
-      );
-    }
-    final watch = Stopwatch()..start();
-    try {
-      final result = await Process.run(
-        'ping',
-        ['-c', '1', '-W', '3', target.host],
-      ).timeout(_pingTimeout);
-      watch.stop();
-      final output = '${result.stdout}${result.stderr}';
-      final match = RegExp(r'time[=<]\s*([\d.]+)').firstMatch(output);
-      if (result.exitCode == 0) {
-        return NodeProbeResult(
-          method: ProbeMethod.icmp,
-          outcome: ProbeOutcome.reached,
-          milliseconds: match == null
-              ? watch.elapsedMilliseconds
-              : (double.tryParse(match.group(1)!) ?? 0).round(),
-        );
-      }
-      return NodeProbeResult(
-        method: ProbeMethod.icmp,
-        outcome: ProbeOutcome.timeout,
-        detail: _firstLine(output),
-      );
-    } on TimeoutException {
-      return const NodeProbeResult(
-        method: ProbeMethod.icmp,
-        outcome: ProbeOutcome.timeout,
-      );
-    } catch (error) {
-      return NodeProbeResult(
-        method: ProbeMethod.icmp,
-        outcome: ProbeOutcome.failed,
-        detail: 'ping unavailable',
-      );
-    }
-  }
-
-  /// Sends CONNECT to the node's own port, which is what a proxy client does
-  /// with an HTTP node.
   Future<NodeProbeResult> connect(
     String addr, {
     Duration timeout = const Duration(seconds: 5),

@@ -85,26 +85,19 @@ class _NodeProbeSheetState extends ConsumerState<_NodeProbeSheet> {
   Future<void> _load() async {
     try {
       final data = await coreController.getProxies();
-      final rows = <_NodeRow>[];
+      final names = <String>[];
       for (final raw in data.proxies.values) {
         if (raw is! Map) continue;
         final proxy = Proxy.fromJson(raw.cast<String, Object?>());
-        if (proxy.addr.isEmpty) continue;
-        if (const {
-          'Direct',
-          'Reject',
-          'Selector',
-          'URLTest',
-          'Fallback',
-          'LoadBalance',
-          'Compatible',
-          'Pass',
-        }.contains(proxy.type)) {
-          continue;
-        }
-        rows.add(_NodeRow(name: proxy.name, addr: proxy.addr));
+        if (_isGroupType(proxy.type)) continue;
+        names.add(proxy.name);
       }
-      rows.sort((a, b) => a.name.compareTo(b.name));
+      final addresses = await Future.wait(names.map(_definitionEndpoint));
+      final rows = <_NodeRow>[
+        for (var i = 0; i < names.length; i++)
+          if (addresses[i].isNotEmpty)
+            _NodeRow(name: names[i], addr: addresses[i]),
+      ]..sort((a, b) => a.name.compareTo(b.name));
       if (!mounted) return;
       setState(() {
         _rows
@@ -122,12 +115,37 @@ class _NodeProbeSheetState extends ConsumerState<_NodeProbeSheet> {
     }
   }
 
+  bool _isGroupType(String type) => const {
+    'Direct',
+    'Reject',
+    'Selector',
+    'URLTest',
+    'Fallback',
+    'LoadBalance',
+    'Compatible',
+    'Pass',
+    'Relay',
+  }.contains(type);
+
+  Future<String> _definitionEndpoint(String name) async {
+    try {
+      final definition = await coreController.getProxyDefinition(name);
+      final server = definition?['server'];
+      final port = definition?['port'];
+      if (server is! String || server.isEmpty) return '';
+      return port == null ? server : '$server:$port';
+    } catch (_) {
+      return '';
+    }
+  }
+
   /// CONNECT is the core's own delay test: the node is dialled through the
   /// tunnel and timed against the configured test url, which is the number the
   /// proxy page already shows.
+  /// TCP times the node's own endpoint; CONNECT is the core's url test, which
+  /// is the number the proxy page already shows.
   Future<NodeProbeResult> _measure(_NodeRow row) => switch (widget.method) {
     ProbeMethod.tcp => _probe.tcp(row.addr),
-    ProbeMethod.icmp => _probe.icmp(row.addr),
     ProbeMethod.connect => _coreDelay(row.name),
   };
 
