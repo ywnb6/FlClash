@@ -321,10 +321,10 @@ class ProxiesAction extends _$ProxiesAction {
   }
 
   Future<void> delayTest(
-    List<Proxy> proxies,
-    String? testUrl, {
+    List<Proxy> proxies, [
+    String? testUrl,
     ProbeMethod method = ProbeMethod.tcp,
-  }) async {
+  ]) async {
     _activeMethod = method;
     await _runDelayTests([(proxies: proxies, testUrl: testUrl)]);
     ref.read(sortNumProvider.notifier).add();
@@ -357,7 +357,7 @@ class ProxiesAction extends _$ProxiesAction {
       await delayTest(
         group.all.whereMatches(query, (proxy) => proxy.searchFields).toList(),
         group.testUrl,
-        method: method,
+        method,
       );
     } finally {
       testing.stop(groupName);
